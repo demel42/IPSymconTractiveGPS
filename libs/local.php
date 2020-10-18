@@ -12,6 +12,10 @@ trait TractiveLocalLib
     public static $IS_NODEVICE = IS_EBASE + 6;
     public static $IS_DEVICEMISSІNG = IS_EBASE + 7;
 
+    public static $STATUS_INVALID = 0;
+    public static $STATUS_VALID = 1;
+    public static $STATUS_RETRYABLE = 2;
+
     private function GetFormStatus()
     {
         $formStatus = [];
