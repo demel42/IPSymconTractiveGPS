@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-trait TractiveLocalLib
+trait TractiveGpsLocalLib
 {
     public static $IS_INVALIDCONFIG = IS_EBASE + 1;
     public static $IS_UNAUTHORIZED = IS_EBASE + 2;

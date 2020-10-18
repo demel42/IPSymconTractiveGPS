@@ -1,4 +1,4 @@
-# IPSymconTractive
+# IPSymconTractiveGps
 
 [![IPS-Version](https://img.shields.io/badge/Symcon_Version-5.3+-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
 ![Code](https://img.shields.io/badge/Code-PHP-blue.svg)
@@ -22,7 +22,7 @@
 ## 2. Voraussetzungen
 
  - IP-Symcon ab Version 5.3
- - ein Tractive GPS-Tracker
+ - ein Tractive GPS-Ortungsgerät
  - den Benutzer-Account, der bei der Anmeldung der Geräte bei Tractive erzeugt wird (https://my.tractive.com)
 
 ## 3. Installation
@@ -45,7 +45,7 @@ In der _Modules_ Instanz rechts oben auf den Button __*Hinzufügen*__ drücken.
 
 In dem sich öffnenden Fenster folgende URL hinzufügen:
 
-`https://github.com/demel42/IPSymconTractive.git`
+`https://github.com/demel42/IPSymconTractiveGps.git`
 
 und mit _OK_ bestätigen. Ggfs. auf anderen Branch wechseln (Modul-Eintrag editieren, _Zweig_ auswählen).
 
@@ -53,15 +53,15 @@ Anschließend erscheint ein Eintrag für das Modul in der Liste der Instanz _Mod
 
 ### b. Einrichtung in IPS
 
-#### TractiveIO
+#### TractiveGpsIO
 
 In dem Konfigurationsdialog die Zugangsdaten eintragen.
 
-#### TractiveConfig
+#### TractiveGpsConfig
 
-Dann unter _Konfigurator Instanzen_ analog den Konfigurator _Tractive Konfigurator_ hinzufügen.
+Dann unter _Konfigurator Instanzen_ analog den Konfigurator _Tractive GPS Konfigurator_ hinzufügen.
 
-Hier werden alle Tractive-Produkte, die mit dem, in der I/O-Instanz angegebenen, Konto verknüpft sind, angeboten; aus denen wählt man ein Produkt aus.
+Hier werden alle Tractive-Ortungsgeräte, die mit dem, in der I/O-Instanz angegebenen, Konto verknüpft sind, angeboten; aus denen wählt man ein Produkt aus.
 
 Mit den Schaltflächen _Erstellen_ bzw. _Alle erstellen_ werden das/die gewählte Produkt anlegt.
 
@@ -75,14 +75,14 @@ Die Instanzen können dann in gewohnter Weise im Objektbaum frei positioniert we
 
 ## 4. Funktionsreferenz
 
-### TractiveIO
+### TractiveGpsIO
 
-`Tractive_UpdateData(int $InstanzID)`
-ruft die Daten der Tractive-Produkte ab. Wird automatisch zyklisch durch die Instanz durchgeführt im Abstand wie in der Konfiguration angegeben.
+`TractiveGps_UpdateData(int $InstanzID)`
+ruft die Daten der Tractive-Ortungsgeräte ab. Wird automatisch zyklisch durch die Instanz durchgeführt im Abstand wie in der Konfiguration angegeben.
 
 ## 5. Konfiguration
 
-### TractiveIO
+### TractiveGpsIO
 
 #### Properties
 
@@ -98,7 +98,7 @@ ruft die Daten der Tractive-Produkte ab. Wird automatisch zyklisch durch die Ins
 | :------------------------ | :----------- |
 | Aktualisiere Daten        | führt eine sofortige Aktualisierung durch |
 
-### TractiveConfig
+### TractiveGpsConfig
 
 #### Properties
 
@@ -107,7 +107,7 @@ ruft die Daten der Tractive-Produkte ab. Wird automatisch zyklisch durch die Ins
 | Kategorie                 | integer  | 0            | Kategorie im Objektbaum, unter dem die Instanzen angelegt werden |
 | Produkte                  | list     |              | Liste der verfügbaren Produkte |
 
-### TractiveSensor
+### TractiveGpsDevice
 
 #### Properties
 
@@ -127,14 +127,14 @@ Es werden folgende Variablenprofile angelegt:
 ## 6. Anhang
 
 GUIDs
-- Modul: `{FEE67CA6-D938-284B-181D-20496B7411C2}`
+- Modul: `{85B63C47-3DA6-7B2F-6472-537D9CA24360}`
 - Instanzen:
-  - TractiveIO: `{070C93FD-9D19-D670-2C73-20104B87F034}`
-  - TractiveConfig: `{F031A9F9-D196-4852-D287-E46A93256F22}`
-  - TractiveSensor: `{F3940032-CC4B-9E69-383A-6FFAD13C5438}`
+  - TractiveGpsIO: `{0661D1B3-4375-1B37-7D59-1592111C8F8D}`
+  - TractiveGpsConfig: `{3A82CAAC-44E5-E310-4F90-AD375E2B5627}`
+  - TractiveGpsDevice: `{A259E80D-C7B4-F5A9-F82B-B9B05F71B4F3}`
 - Nachrichten:
-  - `{076043C4-997E-6AB3-9978-DA212D50A9F5}`: an TractiveIO
-  - `{53264646-2842-AA77-59F7-3722D44C2100}`: an TractiveSensor
+  - `{91C54CDA-594C-1D6F-6BD8-57545408677F}`: an TractiveGpsIO
+  - `{94B20D14-415B-1E19-8EA4-839F948B6CBE}`: an TractiveGpsDevice
 
 ## 7. Versions-Historie
 

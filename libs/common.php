@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-trait TractiveCommonLib
+trait TractiveGpsCommonLib
 {
     protected function SetValue($Ident, $Value)
     {

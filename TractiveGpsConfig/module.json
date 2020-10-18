@@ -1,0 +1,12 @@
+{
+    "id": "{3A82CAAC-44E5-E310-4F90-AD375E2B5627}",
+    "name": "TractiveGpsConfig",
+    "type": 4,
+    "vendor": "Tractive",
+	"aliases": ["Tractive GPS Konfigurator"],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "TractiveGps",
+    "url": "https://github.com/demel42/IPSymconTractiveGps/blob/main/README.md"
+}

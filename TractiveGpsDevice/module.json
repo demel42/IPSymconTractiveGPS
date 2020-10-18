@@ -1,6 +1,6 @@
 {
     "id": "{A259E80D-C7B4-F5A9-F82B-B9B05F71B4F3}",
-    "name": "TractiveDevice",
+    "name": "TractiveGpsDevice",
     "type": 3,
     "vendor": "Tractive",
 	"aliases": ["Tractive", "Tractive GPS-Tracker"],
@@ -11,6 +11,6 @@
     "implemented": [
         "{91C54CDA-594C-1D6F-6BD8-57545408677F}"
     ],
-    "prefix": "Tractive",
-    "url": "https://github.com/demel42/IPSymconTractive/blob/main/README.md"
+    "prefix": "TractiveGps",
+    "url": "https://github.com/demel42/IPSymconTractiveGps/blob/main/README.md"
 }
