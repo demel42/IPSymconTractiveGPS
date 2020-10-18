@@ -1,0 +1,16 @@
+{
+    "id": "{0661D1B3-4375-1B37-7D59-1592111C8F8D}",
+    "name": "TractiveIO",
+    "type": 1,
+    "vendor": "Tractive",
+    "aliases": [],
+    "parentRequirements": [],
+    "childRequirements": [
+        "{91C54CDA-594C-1D6F-6BD8-57545408677F}"
+    ],
+    "implemented": [
+        "{94B20D14-415B-1E19-8EA4-839F948B6CBE}"
+    ],
+    "prefix": "Tractive",
+    "url": "https://github.com/demel42/IPSymconTractive/blob/master/README.md"
+}
