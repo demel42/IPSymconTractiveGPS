@@ -7,8 +7,8 @@ require_once __DIR__ . '/../libs/local.php';   // lokale Funktionen
 
 class TractiveIO extends IPSModule
 {
-    use NetatmoAircareCommonLib;
-    use NetatmoAircareLocalLib;
+    use TractiveCommonLib;
+    use TractiveLocalLib;
 
     public function Create()
     {
@@ -16,12 +16,12 @@ class TractiveIO extends IPSModule
 
         $this->RegisterPropertyBoolean('module_disable', false);
 
-        $this->RegisterPropertyString('User', '');
-        $this->RegisterPropertyString('Password', '');
+        $this->RegisterPropertyString('user', '');
+        $this->RegisterPropertyString('password', '');
 
-        $this->RegisterPropertyInteger('UpdateDataInterval', '5');
+        $this->RegisterPropertyInteger('update_interval', '5');
 
-        $this->RegisterTimer('UpdateData', 0, 'NetatmoAircare_UpdateData(' . $this->InstanceID . ');');
+        $this->RegisterTimer('UpdateData', 0, 'Tractive_UpdateData(' . $this->InstanceID . ');');
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
     }
 
@@ -75,12 +75,12 @@ class TractiveIO extends IPSModule
         ];
         $formElements[] = [
             'type'    => 'ValidationTextBox',
-            'name'    => 'User',
+            'name'    => 'user',
             'caption' => 'Username'
         ];
         $formElements[] = [
             'type'    => 'ValidationTextBox',
-            'name'    => 'Password',
+            'name'    => 'password',
             'caption' => 'Password'
         ];
 
@@ -90,7 +90,7 @@ class TractiveIO extends IPSModule
         ];
         $formElements[] = [
             'type'    => 'NumberSpinner',
-            'name'    => 'UpdateDataInterval',
+            'name'    => 'update_interval',
             'caption' => 'Minutes'
         ];
 
@@ -104,7 +104,7 @@ class TractiveIO extends IPSModule
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Update data',
-            'onClick' => 'NetatmoAircare_UpdateData($id);'
+            'onClick' => 'Tracticve_UpdateData($id);'
         ];
 
         return $formActions;
@@ -112,7 +112,7 @@ class TractiveIO extends IPSModule
 
     protected function SetUpdateInterval()
     {
-        $min = $this->ReadPropertyInteger('UpdateDataInterval');
+        $min = $this->ReadPropertyInteger('update_interval');
         $msec = $min > 0 ? $min * 1000 * 60 : 0;
         $this->SetTimerInterval('UpdateData', $msec);
         $this->SendDebug(__FUNCTION__, 'min=' . $min . ', msec=' . $msec, 0);
@@ -168,5 +168,60 @@ class TractiveIO extends IPSModule
         $this->SendDataToChildren(json_encode($sdata));
 
         $this->SetStatus(IS_ACTIVE);
+    }
+
+    private function GetApiAccessToken()
+    {
+        $url = 'https://api.netatmo.net/oauth2/token';
+
+        $user = $this->ReadPropertyString('user');
+        $password = $this->ReadPropertyString('password');
+
+        $jtoken = json_decode($this->GetBuffer('ApiAccessToken'), true);
+        $access_token = isset($jtoken['access_token']) ? $jtoken['access_token'] : '';
+        $expiration = isset($jtoken['expiration']) ? $jtoken['expiration'] : 0;
+        if ($expiration < time()) {
+            $this->SendDebug(__FUNCTION__, 'access_token expired', 0);
+            $access_token = '';
+        }
+        if ($access_token == '') {
+            $postdata = [
+                'username'      => $user,
+                'password'      => $password,
+                'scope'         => 'read_station'
+            ];
+
+            $data = '';
+            $err = '';
+            $statuscode = $this->do_HttpRequest($url, '', $postdata, 'POST', $data, $err);
+            if ($statuscode == 0) {
+                $params = json_decode($data, true);
+                $this->SendDebug(__FUNCTION__, 'params=' . print_r($params, true), 0);
+                if ($params['access_token'] == '') {
+                    $statuscode = self::$IS_INVALIDDATA;
+                    $err = "no 'access_token' in response";
+                }
+            }
+
+            if ($statuscode) {
+                $this->LogMessage('url=' . $url . ', statuscode=' . $statuscode . ', err=' . $err, KL_WARNING);
+                $this->SendDebug(__FUNCTION__, $err, 0);
+                $this->SetStatus($statuscode);
+                return false;
+            }
+
+            $access_token = $params['access_token'];
+            $expires_in = $params['expires_in'];
+            $expiration = time() + $expires_in - 60;
+            $this->SendDebug(__FUNCTION__, 'new access_token=' . $access_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
+            $jtoken = [
+                'access_token' => $access_token,
+                'expiration'   => $expiration,
+            ];
+            $this->SetBuffer('ApiAccessToken', json_encode($jtoken));
+            $this->SetStatus(IS_ACTIVE);
+        }
+
+        return $access_token;
     }
 }

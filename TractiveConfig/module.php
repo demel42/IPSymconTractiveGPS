@@ -7,6 +7,6 @@ require_once __DIR__ . '/../libs/local.php';   // lokale Funktionen
 
 class TractiveConfig extends IPSModule
 {
-    use NetatmoAircareCommonLib;
-    use NetatmoAircareLocalLib;
+    use TractiveCommonLib;
+    use TractiveLocalLib;
 }
