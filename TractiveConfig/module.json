@@ -3,10 +3,10 @@
     "name": "TractiveConfig",
     "type": 4,
     "vendor": "Tractive",
-    "aliases": [],
+	"aliases": ["Tractive Konfigurator"],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
     "prefix": "Tractive",
-    "url": "https://github.com/demel42/IPSymconTractive/blob/master/README.md"
+    "url": "https://github.com/demel42/IPSymconTractive/blob/main/README.md"
 }

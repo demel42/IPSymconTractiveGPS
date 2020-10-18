@@ -3,7 +3,7 @@
     "name": "TractiveIO",
     "type": 1,
     "vendor": "Tractive",
-    "aliases": [],
+	"aliases": ["Tractive I/O"],
     "parentRequirements": [],
     "childRequirements": [
         "{91C54CDA-594C-1D6F-6BD8-57545408677F}"
@@ -12,5 +12,5 @@
         "{94B20D14-415B-1E19-8EA4-839F948B6CBE}"
     ],
     "prefix": "Tractive",
-    "url": "https://github.com/demel42/IPSymconTractive/blob/master/README.md"
+    "url": "https://github.com/demel42/IPSymconTractive/blob/main/README.md"
 }
