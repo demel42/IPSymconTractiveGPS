@@ -13,7 +13,7 @@
 			"Instance is inactive (http error)": "Instanz ist inaktiv (HTTP-Fehler)",
 			"Instance is inactive (invalid data)": "Instanz ist inaktiv (ungültige Daten)",
 			"Instance is inactive (no device)": "Instanz ist inaktiv (kein Gerät)",
-			"Instance is inactive (device missing)": "Instanz ist inaktiv (Gerät ist unbekannt)",
+			"Instance is inactive (device missing)": "Instanz ist inaktiv (Gerät ist unbekannt)"
         }
     }
 }

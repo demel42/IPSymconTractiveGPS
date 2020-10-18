@@ -45,8 +45,8 @@ class TractiveIO extends IPSModule
             return;
         }
 
-        $user = $this->ReadPropertyString('User');
-        $password = $this->ReadPropertyString('Password');
+        $user = $this->ReadPropertyString('user');
+        $password = $this->ReadPropertyString('password');
         if ($user == '' || $password == '') {
             $this->SetStatus(IS_INACTIVE);
             return;
@@ -60,8 +60,6 @@ class TractiveIO extends IPSModule
 
     private function GetFormElements()
     {
-        $oauth_type = $this->ReadPropertyInteger('OAuth_Type');
-
         $formElements = [];
         $formElements[] = [
             'type'    => 'CheckBox',
