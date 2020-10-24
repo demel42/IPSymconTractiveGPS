@@ -4,9 +4,9 @@
     "type": 4,
     "vendor": "Tractive",
 	"aliases": ["Tractive GPS Konfigurator"],
-    "parentRequirements": [],
+    "parentRequirements": ["{94B20D14-415B-1E19-8EA4-839F948B6CBE}"],
     "childRequirements": [],
-    "implemented": [],
+    "implemented": ["{91C54CDA-594C-1D6F-6BD8-57545408677F}"],
     "prefix": "TractiveGps",
     "url": "https://github.com/demel42/IPSymconTractiveGps/blob/main/README.md"
 }

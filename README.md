@@ -134,7 +134,7 @@ GUIDs
   - TractiveGpsDevice: `{A259E80D-C7B4-F5A9-F82B-B9B05F71B4F3}`
 - Nachrichten:
   - `{91C54CDA-594C-1D6F-6BD8-57545408677F}`: an TractiveGpsIO
-  - `{94B20D14-415B-1E19-8EA4-839F948B6CBE}`: an TractiveGpsDevice
+  - `{94B20D14-415B-1E19-8EA4-839F948B6CBE}`: an TractiveGpsConfig, TractiveGpsDevice
 
 ## 7. Versions-Historie
 

@@ -4,13 +4,9 @@
     "type": 3,
     "vendor": "Tractive",
 	"aliases": ["Tractive", "Tractive GPS-Tracker"],
-    "parentRequirements": [
-        "{94B20D14-415B-1E19-8EA4-839F948B6CBE}"
-    ],
+    "parentRequirements": ["{94B20D14-415B-1E19-8EA4-839F948B6CBE}"],
     "childRequirements": [],
-    "implemented": [
-        "{91C54CDA-594C-1D6F-6BD8-57545408677F}"
-    ],
+    "implemented": ["{91C54CDA-594C-1D6F-6BD8-57545408677F}"],
     "prefix": "TractiveGps",
     "url": "https://github.com/demel42/IPSymconTractiveGps/blob/main/README.md"
 }
