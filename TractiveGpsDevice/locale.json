@@ -3,6 +3,46 @@
         "de": {
 			"Instance is disabled": "Instanz ist deaktiviert",
 
+			"Instance has no active parent instance": "Instanz hat keine aktive übergeordnete Instanz",
+			"Instance is disabled": "Instanz ist deaktiviert",
+			"Tractive GPS Tracker": "Tractive GPS Tracker",
+			"Tracker-ID": "Tracker-ID",
+			"Pet-ID": "Haustier-ID",
+			"Model": "Modell",
+			"Basic configuration (don't change)": "Basis-Konfiguration (nicht ändern)",
+			"Update data every X minutes": "Aktualisieren Daten alle X Minuten",
+			"Minutes": "Minuten",
+
+			"Update data": "Aktualisiere Daten",
+			"Test area": "Test-Bereich",
+
+			"NOT_REPORTING": "nicht verbunden",
+			"OPERATIONAL": "in Betrieb",
+
+			"NORMAL": "normal",
+
+			"State": "Status",
+			"Last transmission": "Letzte Übertragung",
+			"Battery level": "Ladezustand",
+			"Temperature state": "Temperatur-Status",
+			"Last position message": "Letzte Positionsmeldung",
+			"Longitude": "Längengrad",
+			"Latitude": "Breіtengrad",
+			"Altitude": "Höhe",
+			"Speed": "Geschwindigkeit",
+			"Course": "Richtung",
+			"Used sensor": "Verwendeter Sensor",
+			"Position uncerntainty": "Positions-Ungenauigkeit",
+			"Last update": "Letzte Aktualisierung",
+			"Last change": "Letzte Änderung",
+
+			"Buzzer": "Signalton",
+			"Light": "Signallicht",
+			"Live tracking": "Live tracking",
+
+			"On": "Ein",
+			"Off": "Aus",
+
 			"Instance getting created": "Instanz wird erstellt",
 			"Instance is active": "Instanz ist aktiv",
 			"Instance is deleted": "Instanz wird gelöscht",

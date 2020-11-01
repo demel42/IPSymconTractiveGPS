@@ -1,6 +1,15 @@
 {
     "translations": {
         "de": {
+			"Instance has no active parent instance": "Instanz hat keine aktive übergeordnete Instanz",
+
+			"category for devices to be created": "Kategorie für anzulegende Geräte",
+			"category": "Kategorie",
+			"GPS Trackers": "GPS Tracker",
+			"Model": "Modell",
+			"Pet": "Haustier",
+			"Id": "Id",
+
 			"Instance getting created": "Instanz wird erstellt",
 			"Instance is active": "Instanz ist aktiv",
 			"Instance is deleted": "Instanz wird gelöscht",

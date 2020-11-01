@@ -143,7 +143,7 @@ class TractiveGpsConfig extends IPSModule
 
         $formElements[] = [
             'type'    => 'Label',
-            'caption' => 'category for devices to be created:'
+            'caption' => 'category for devices to be created'
         ];
         $formElements[] = [
             'type'    => 'SelectCategory',

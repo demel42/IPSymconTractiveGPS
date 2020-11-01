@@ -18,6 +18,25 @@ trait TractiveGpsCommonLib
         }
     }
 
+    private function SaveValue($Ident, $Value, &$IsChanged)
+    {
+        @$varID = $this->GetIDForIdent($Ident);
+        if ($varID == false) {
+            $this->SendDebug(__FUNCTION__, 'missing variable ' . $Ident, 0);
+            return;
+        }
+
+        if (parent::GetValue($Ident) != $Value) {
+            $IsChanged = true;
+        }
+
+        @$ret = parent::SetValue($Ident, $Value);
+        if ($ret == false) {
+            $this->SendDebug(__FUNCTION__, 'mismatch of value "' . $Value . '" for variable ' . $Ident, 0);
+            return;
+        }
+    }
+
     protected function GetValue($Ident)
     {
         @$varID = $this->GetIDForIdent($Ident);
@@ -28,6 +47,22 @@ trait TractiveGpsCommonLib
 
         $ret = parent::GetValue($Ident);
         return $ret;
+    }
+
+    private function AdjustAction($Ident, $Mode)
+    {
+        @$varID = $this->GetIDForIdent($Ident);
+        if ($varID == false) {
+            $this->SendDebug(__FUNCTION__, 'missing variable ' . $Ident, 0);
+            return false;
+        }
+
+        $v = IPS_GetVariable($varID);
+        $oldMode = $v['VariableAction'] != 0;
+
+        $this->MaintainAction($Ident, $Mode);
+
+        return $oldMode != $Mode;
     }
 
     private function CreateVarProfile($Name, $ProfileType, $Suffix, $MinValue, $MaxValue, $StepSize, $Digits, $Icon, $Associations = '')

@@ -138,5 +138,5 @@ GUIDs
 
 ## 7. Versions-Historie
 
-- 1.0 @ 30.06.2020 18:37 (dev)
+- 1.0 @ 01.11.2020 18:39 (dev)
   - Initiale Version

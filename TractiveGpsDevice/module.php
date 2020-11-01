@@ -20,17 +20,77 @@ class TractiveGpsDevice extends IPSModule
         $this->RegisterPropertyString('pet_id', '');
         $this->RegisterPropertyString('model_number', '');
 
+        $this->RegisterPropertyInteger('update_interval', '5');
+
+        $associations = [];
+        $associations[] = ['Wert' => false, 'Name' => $this->Translate('Off'), 'Farbe' => -1];
+        $associations[] = ['Wert' => true, 'Name' => $this->Translate('On'), 'Farbe' => -1];
+        $this->CreateVarProfile('TractiveGps.Switch', VARIABLETYPE_BOOLEAN, '', 0, 0, 0, 0, '', $associations);
+
+        $this->CreateVarProfile('TractiveGps.BatteryLevel', VARIABLETYPE_INTEGER, ' %', 0, 0, 0, 0, '');
+
+        $this->CreateVarProfile('TractiveGps.Altitude', VARIABLETYPE_FLOAT, ' m', 0, 0, 0, 0, '');
+        $this->CreateVarProfile('TractiveGps.Speed', VARIABLETYPE_FLOAT, ' km/h', 0, 0, 0, 0, '');
+        $this->CreateVarProfile('TractiveGps.Course', VARIABLETYPE_FLOAT, ' °', 0, 0, 0, 0, '');
+        $this->CreateVarProfile('TractiveGps.Location', VARIABLETYPE_FLOAT, ' °', 0, 0, 0, 5, '');
+        $this->CreateVarProfile('TractiveGps.Uncertainty', VARIABLETYPE_FLOAT, ' m', 0, 0, 0, 0, '');
+
+        $this->RegisterTimer('UpdateData', 0, 'TractiveGps_UpdateData(' . $this->InstanceID . ');');
+
         $this->ConnectParent('{0661D1B3-4375-1B37-7D59-1592111C8F8D}');
 
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
     }
 
+    public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
+    {
+        parent::MessageSink($TimeStamp, $SenderID, $Message, $Data);
+
+        if ($Message == IPS_KERNELMESSAGE && $Data[0] == KR_READY) {
+            $this->UpdateData();
+        }
+    }
+
     public function ApplyChanges()
     {
+        parent::ApplyChanges();
+
         $tracker_id = $this->ReadPropertyString('tracker_id');
+        $pet_id = $this->ReadPropertyString('pet_id');
         $model_number = $this->ReadPropertyString('model_number');
 
-        parent::ApplyChanges();
+        $vpos = 1;
+
+        $this->MaintainVariable('State', $this->Translate('State'), VARIABLETYPE_STRING, '', $vpos++, true);
+
+        $vpos = 10;
+        $this->MaintainVariable('LastContact', $this->Translate('Last transmission'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
+        $this->MaintainVariable('BatteryLevel', $this->Translate('Battery level'), VARIABLETYPE_INTEGER, 'TractiveGps.BatteryLevel', $vpos++, true);
+        $this->MaintainVariable('TemperatureState', $this->Translate('Temperature state'), VARIABLETYPE_STRING, '', $vpos++, true);
+
+        $vpos = 20;
+        $this->MaintainVariable('LastPositionMessage', $this->Translate('Last position message'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
+        $this->MaintainVariable('LastLongitude', $this->Translate('Longitude'), VARIABLETYPE_FLOAT, 'TractiveGps.Location', $vpos++, true);
+        $this->MaintainVariable('LastLatitude', $this->Translate('Latitude'), VARIABLETYPE_FLOAT, 'TractiveGps.Location', $vpos++, true);
+        $this->MaintainVariable('Altitude', $this->Translate('Altitude'), VARIABLETYPE_FLOAT, 'TractiveGps.Altitude', $vpos++, true);
+        $this->MaintainVariable('Speed', $this->Translate('Speed'), VARIABLETYPE_FLOAT, 'TractiveGps.Speed', $vpos++, true);
+        $this->MaintainVariable('Course', $this->Translate('Course'), VARIABLETYPE_FLOAT, 'TractiveGps.Course', $vpos++, true);
+        $this->MaintainVariable('SensorUsed', $this->Translate('Used sensor'), VARIABLETYPE_STRING, '', $vpos++, true);
+        $this->MaintainVariable('PositionUncertainty', $this->Translate('Position uncerntainty'), VARIABLETYPE_FLOAT, 'TractiveGps.Uncertainty', $vpos++, true);
+
+        $vpos = 30;
+        $this->MaintainVariable('BuzzerActive', $this->Translate('Buzzer'), VARIABLETYPE_BOOLEAN, 'TractiveGps.Switch', $vpos++, true);
+        $this->MaintainAction('BuzzerActive', true);
+        $vpos = 40;
+        $this->MaintainVariable('LightActive', $this->Translate('Light'), VARIABLETYPE_BOOLEAN, 'TractiveGps.Switch', $vpos++, true);
+        $this->MaintainAction('LightActive', true);
+        $vpos = 50;
+        $this->MaintainVariable('LiveTrackingActive', $this->Translate('Live tracking'), VARIABLETYPE_BOOLEAN, 'TractiveGps.Switch', $vpos++, true);
+        $this->MaintainAction('LiveTrackingActive', true);
+
+        $vpos = 90;
+        $this->MaintainVariable('LastUpdate', $this->Translate('Last update'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
+        $this->MaintainVariable('LastChange', $this->Translate('Last change'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
 
         $summary = $model_number . ' (#' . $tracker_id . ')';
         $this->SetSummary($summary);
@@ -40,7 +100,22 @@ class TractiveGpsDevice extends IPSModule
             $this->UnregisterReference($ref);
         }
 
+        if ($tracker_id == '' || $pet_id == '') {
+            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            return;
+        }
+
         $this->SetStatus(IS_ACTIVE);
+
+        $module_disable = $this->ReadPropertyBoolean('module_disable');
+        if ($module_disable) {
+            $this->SetUpdateInterval(0);
+            $this->SetStatus(IS_INACTIVE);
+            return;
+        }
+        if (IPS_GetKernelRunlevel() == KR_READY) {
+            $this->SetUpdateInterval(1);
+        }
     }
 
     public function GetConfigurationForm()
@@ -103,6 +178,16 @@ class TractiveGpsDevice extends IPSModule
             'caption' => 'Basic configuration (don\'t change)',
         ];
 
+        $formElements[] = [
+            'type'    => 'Label',
+            'caption' => 'Update data every X minutes'
+        ];
+        $formElements[] = [
+            'type'    => 'NumberSpinner',
+            'name'    => 'update_interval',
+            'caption' => 'Minutes'
+        ];
+
         return $formElements;
     }
 
@@ -110,136 +195,127 @@ class TractiveGpsDevice extends IPSModule
     {
         $formActions = [];
 
+        $formActions[] = [
+            'type'    => 'Button',
+            'caption' => 'Update data',
+            'onClick' => 'TractiveGps_UpdateData($id);'
+        ];
+
+        $formActions[] = [
+            'type'      => 'ExpansionPanel',
+            'caption'   => 'Test area',
+            'expanded ' => false,
+            'items'     => [
+                [
+                    'type'    => 'TestCenter',
+                ]
+            ]
+        ];
+
         return $formActions;
     }
-    public function Send()
+
+    protected function SetUpdateInterval($sec = null)
     {
-        $this->SendDataToParent(json_encode(['DataID' => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}']));
+        if ($sec == null) {
+            $min = $this->ReadPropertyInteger('update_interval');
+            $sec = $min * 60;
+        }
+        $msec = $sec > 0 ? $sec * 1000 : 0;
+        $this->SetTimerInterval('UpdateData', $msec);
+        $this->SendDebug(__FUNCTION__, 'sec=' . $sec . ', msec=' . $msec, 0);
     }
 
-    public function ReceiveData($JSONString)
+    public function UpdateData()
     {
-        $data = json_decode($JSONString);
-        IPS_LogMessage('Device RECV', utf8_decode($data->Buffer));
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            if ($this->GetStatus() == self::$IS_NOLOGIN) {
+                $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => pause', 0);
+                $this->SetUpdateInterval(0);
+            } else {
+                $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            }
+            return;
+        }
+
+        if ($this->HasActiveParent() == false) {
+            $this->SendDebug(__FUNCTION__, 'has no active parent', 0);
+            $this->LogMessage('has no active parent instance', KL_WARNING);
+            return;
+        }
+
+        $tracker_id = $this->ReadPropertyString('tracker_id');
+        $pet_id = $this->ReadPropertyString('pet_id');
+        $sendData = [
+            'DataID'     => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}',
+            'Function'   => 'GetUpdateData',
+            'tracker_id' => $tracker_id,
+            'pet_id'     => $pet_id,
+        ];
+        $this->SendDebug(__FUNCTION__, 'sendData=' . print_r($sendData, true), 0);
+        $receiveData = $this->SendDataToParent(json_encode($sendData));
+        $this->SendDebug(__FUNCTION__, 'receiveData=' . print_r($receiveData, true), 0);
+        $this->decodeUpdateData($receiveData);
+
+        $this->SetUpdateInterval();
+        $this->SetStatus(IS_ACTIVE);
     }
 
     private function decodeUpdateData($data)
     {
+        $now = time();
+        $is_changed = false;
+
         $jdata = json_decode($data, true);
-        /*
-            TestAccess | bulk=Array
-            (
-                [0] => Array
-                    (
-                        [time] => 1603466887
-                        [hw_status] =>
-                        [battery_level] => 91
-                        [temperature_state] => NORMAL
-                        [clip_mounted_state] =>
-                        [_id] => YBPWTKPP
-                        [_type] => device_hw_report
-                        [_version] => 68c8c1600
-                        [report_id] => 5f92f68713204b00061c8c86
-                    )
-
-                [1] => Array
-                    (
-                        [time] => 1603466830
-                        [time_rcvd] => 1603466886
-                        [sensor_used] => GPS
-                        [pos_status] => Array
-                            (
-                            )
-
-                        [latlong] => Array
-                            (
-                                [0] => 51,4610366
-                                [1] => 7,15845
-                            )
-
-                        [speed] => 1,4
-                        [course] => 4
-                        [pos_uncertainty] => 39
-                        [_id] => YBPWTKPP
-                        [_type] => device_pos_report
-                        [_version] => 96c8c1600
-                        [altitude] => 92
-                        [report_id] => 5f92f68613204b00061c8c69
-                        [nearby_user_id] =>
-                    )
-
-                [2] => Array
-                    (
-                        [_id] => YBPWTKPP_buzzer_control
-                        [_version] => 815939b76
-                        [_type] => tracker_command_state
-                        [active] =>
-                        [started_at] =>
-                        [timeout] => 300
-                        [remaining] => 0
-                        [pending] =>
-                    )
-
-                [3] => Array
-                    (
-                        [_id] => YBPWTKPP_led_control
-                        [_version] => 815939b76
-                        [_type] => tracker_command_state
-                        [active] =>
-                        [started_at] =>
-                        [timeout] => 300
-                        [remaining] => 0
-                        [pending] =>
-                    )
-
-                [4] => Array
-                    (
-                        [_id] => YBPWTKPP_live_tracking
-                        [_version] => 2330347b9
-                        [_type] => tracker_command_state
-                        [active] =>
-                        [started_at] =>
-                        [timeout] => 300
-                        [remaining] => 0
-                        [pending] =>
-                        [reconnecting] =>
-                    )
-
-                [5] => Array
-                    (
-                        [_id] => YBPWTKPP_pos_request
-                        [_version] => 90af4ab15
-                        [_type] => tracker_command_state
-                        [active] =>
-                        [started_at] =>
-                        [timeout] => 30
-                        [remaining] => 0
-                        [pending] =>
-                    )
-
-            )
-
-         */
+        $this->SendDebug(__FUNCTION__, 'data=' . print_r($jdata, true), 0);
         foreach ($jdata as $elem) {
             $_type = $elem['_type'];
+            $this->SendDebug(__FUNCTION__, $_type . ' => ' . print_r($elem, true), 0);
             switch ($_type) {
                 case 'device_hw_report':
-                    $time = $this->GetArrayElem($elem, 'time', '');
-                    $hw_status = $this->GetArrayElem($elem, 'hw_status', '');
+                    $last_contact = $this->GetArrayElem($elem, 'time', '');
+                    $this->SaveValue('LastContact', $last_contact, $is_changed);
+
                     $battery_level = $this->GetArrayElem($elem, 'battery_level', '');
+                    $this->SetValue('BatteryLevel', (int) $battery_level);
+
                     $temperature_state = $this->GetArrayElem($elem, 'temperature_state', '');
-                    $clip_mounted_state = $this->GetArrayElem($elem, 'clip_mounted_state', '');
-                    $this->SendDebug(__FUNCTION__, $_type . ' => time=' . $time . ', hw_status=' . $hw_status . ', battery_level=' . $battery_level . ', temperature_state=' . $temperature_state . ', clip_mounted_state=' . $clip_mounted_state, 0);
+                    $this->SetValue('TemperatureState', $this->Translate($temperature_state));
                     break;
                 case 'device_pos_report':
-                    $time = $this->GetArrayElem($elem, 'time', '');
-                    $sensor_used = $this->GetArrayElem($elem, 'sensor_used', '');
+                    $last_pos = $this->GetArrayElem($elem, 'time', '');
+                    $this->SaveValue('LastPositionMessage', $last_pos, $is_changed);
+
                     $lat = $this->GetArrayElem($elem, 'latlong.0', '');
+                    $this->SaveValue('LastLatitude', $lat, $is_changed);
+
                     $lng = $this->GetArrayElem($elem, 'latlong.1', '');
-                    $speed = $this->GetArrayElem($elem, 'speed', '');
+                    $this->SaveValue('LastLongitude', $lng, $is_changed);
+
                     $altitude = $this->GetArrayElem($elem, 'altitude', '');
+                    $this->SaveValue('Altitude', $altitude, $is_changed);
+
+                    $speed = $this->GetArrayElem($elem, 'speed', '');
+                    if ($speed != '') {
+                        $this->SaveValue('Speed', $speed, $is_changed);
+                    }
+
+                    $course = $this->GetArrayElem($elem, 'course', '');
+                    if ($course != '') {
+                        $this->SaveValue('Course', $course, $is_changed);
+                    }
+
                     $pos_uncertainty = $this->GetArrayElem($elem, 'pos_uncertainty', '');
-                    $this->SendDebug(__FUNCTION__, $_type . ' => time=' . $time . ', sensor_used=' . $sensor_used . ', lat=' . $lat . ', lng=' . $lng . ', speed=' . $speed . ', altitude=' . $altitude . ', pos_uncertainty=' . $pos_uncertainty, 0);
+                    if ($pos_uncertainty != '') {
+                        $this->SaveValue('PositionUncertainty', $pos_uncertainty, $is_changed);
+                    }
+
+                    $sensor_used = $this->GetArrayElem($elem, 'sensor_used', '');
+                    $this->SaveValue('SensorUsed', $sensor_used, $is_changed);
+                    break;
+                case 'tracker':
+                    $state = $this->GetArrayElem($elem, 'state', '');
+                    $this->SetValue('State', $this->Translate($state));
                     break;
                 case 'tracker_command_state':
                     $_id = $elem['_id'];
@@ -248,32 +324,19 @@ class TractiveGpsDevice extends IPSModule
                     }
                     switch ($_id) {
                         case 'buzzer_control':
-                            $active = $this->GetArrayElem($elem, 'active', '');
                             $pending = $this->GetArrayElem($elem, 'pending', '');
-                            $started_at = $this->GetArrayElem($elem, 'started_at', '');
-                            $remaining = $this->GetArrayElem($elem, 'remaining', '');
-                            $this->SendDebug(__FUNCTION__, $_type . '::' . $_id . ' => active=' . $active . ', pending=' . $pending . ', started_at=' . $started_at . ', remaining=' . $remaining, 0);
+                            $this->SetValue('BuzzerActive', (bool) $pending, $is_changed);
+                            $this->SendDebug(__FUNCTION__, 'type=' . $_type . ', id=' . $_id . ', elem=' . print_r($elem, true), 0);
                             break;
                         case 'led_control':
-                            $active = $this->GetArrayElem($elem, 'active', '');
                             $pending = $this->GetArrayElem($elem, 'pending', '');
-                            $started_at = $this->GetArrayElem($elem, 'started_at', '');
-                            $remaining = $this->GetArrayElem($elem, 'remaining', '');
-                            $this->SendDebug(__FUNCTION__, $_type . '::' . $_id . ' => active=' . $active . ', pending=' . $pending . ', started_at=' . $started_at . ', remaining=' . $remaining, 0);
+                            $this->SetValue('LightActive', (bool) $pending, $is_changed);
+                            $this->SendDebug(__FUNCTION__, 'type=' . $_type . ', id=' . $_id . ', elem=' . print_r($elem, true), 0);
                             break;
                         case 'live_tracking':
                             $active = $this->GetArrayElem($elem, 'active', '');
-                            $pending = $this->GetArrayElem($elem, 'pending', '');
-                            $started_at = $this->GetArrayElem($elem, 'started_at', '');
-                            $remaining = $this->GetArrayElem($elem, 'remaining', '');
-                            $this->SendDebug(__FUNCTION__, $_type . '::' . $_id . ' => active=' . $active . ', pending=' . $pending . ', started_at=' . $started_at . ', remaining=' . $remaining, 0);
-                            break;
-                        case 'pos_request':
-                            $active = $this->GetArrayElem($elem, 'active', '');
-                            $pending = $this->GetArrayElem($elem, 'pending', '');
-                            $started_at = $this->GetArrayElem($elem, 'started_at', '');
-                            $remaining = $this->GetArrayElem($elem, 'remaining', '');
-                            $this->SendDebug(__FUNCTION__, $_type . '::' . $_id . ' => active=' . $active . ', pending=' . $pending . ', started_at=' . $started_at . ', remaining=' . $remaining, 0);
+                            $this->SetValue('LiveTrackingActive', (bool) $active, $is_changed);
+                            $this->SendDebug(__FUNCTION__, 'type=' . $_type . ', id=' . $_id . ', elem=' . print_r($elem, true), 0);
                             break;
                     }
                     break;
@@ -281,6 +344,149 @@ class TractiveGpsDevice extends IPSModule
                     $this->SendDebug(__FUNCTION__, 'type=' . $_type . ', elem=' . print_r($elem, true), 0);
                     break;
             }
+        }
+
+        $this->SetValue('LastUpdate', $now);
+        if ($is_changed) {
+            $this->SetValue('LastChange', $now);
+        }
+
+        $operational = $this->GetValue('State') == 'in Betrieb';
+        $this->AdjustActions($operational);
+    }
+
+    private function AdjustActions($mode)
+    {
+        $chg = false;
+
+        $chg |= $this->AdjustAction('BuzzerActive', $mode);
+        $chg |= $this->AdjustAction('LightActive', $mode);
+        $chg |= $this->AdjustAction('LiveTrackingActive', $mode);
+
+        if ($chg) {
+            $this->ReloadForm();
+        }
+    }
+
+    private function SendTrackerCommand($func, $payload)
+    {
+        if ($this->GetStatus() == IS_INACTIVE) {
+            $this->SendDebug(__FUNCTION__, 'instance is inactive, skip', 0);
+            return;
+        }
+
+        if ($this->HasActiveParent() == false) {
+            $this->SendDebug(__FUNCTION__, 'has no active parent instance', 0);
+            $this->LogMessage('has no active parent instance', KL_WARNING);
+            return;
+        }
+
+        $tracker_id = $this->ReadPropertyString('tracker_id');
+        $sendData = [
+            'DataID'     => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}',
+            'Function'   => $func,
+            'tracker_id' => $tracker_id,
+            'payload'    => $payload
+        ];
+        $this->SendDebug(__FUNCTION__, 'sendData=' . print_r($sendData, true), 0);
+        $receiveData = $this->SendDataToParent(json_encode($sendData));
+        $this->SendDebug(__FUNCTION__, 'receiveData=' . print_r($receiveData, true), 0);
+        return $receiveData;
+    }
+
+    private function checkAction($func, $verbose)
+    {
+        $operational = $this->GetValue('State') == 'in Betrieb';
+
+        $enabled = false;
+        switch ($func) {
+            case 'SwitchBuzzer':
+                if ($operational) {
+                    $enabled = true;
+                }
+                break;
+            case 'SwitchLight':
+                if ($operational) {
+                    $enabled = true;
+                }
+                break;
+            case 'SwitchLiveTracking':
+                if ($operational) {
+                    $enabled = true;
+                }
+                break;
+            default:
+                $this->SendDebug(__FUNCTION__, 'unsupported action "' . $func . '"', 0);
+                break;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'action "' . $func . '" is ' . ($enabled ? 'enabled' : 'disabled'), 0);
+        return $enabled;
+    }
+
+    private function SwitchBuzzer(bool $mode)
+    {
+        if (!$this->checkAction(__FUNCTION__, true)) {
+            return false;
+        }
+
+        $payload = [
+            'mode' => $mode
+        ];
+        return $this->SendTrackerCommand(__FUNCTION__, $payload);
+    }
+
+    private function SwitchLight(bool $mode)
+    {
+        if (!$this->checkAction(__FUNCTION__, true)) {
+            return false;
+        }
+
+        $payload = [
+            'mode' => $mode
+        ];
+        return $this->SendTrackerCommand(__FUNCTION__, $payload);
+    }
+
+    private function SwitchLiveTracking(bool $mode)
+    {
+        if (!$this->checkAction(__FUNCTION__, true)) {
+            return false;
+        }
+
+        $payload = [
+            'mode' => $mode
+        ];
+        return $this->SendTrackerCommand(__FUNCTION__, $payload);
+    }
+
+    public function RequestAction($Ident, $Value)
+    {
+        if ($this->GetStatus() == IS_INACTIVE) {
+            $this->SendDebug(__FUNCTION__, 'instance is inactive, skip', 0);
+            return;
+        }
+
+        $r = false;
+        switch ($Ident) {
+            case 'BuzzerActive':
+                $r = $this->SwitchBuzzer((bool) $Value);
+                $this->SendDebug(__FUNCTION__, $Ident . '=' . $Value . ' => ret=' . $r, 0);
+                break;
+            case 'LightActive':
+                $r = $this->SwitchLight((bool) $Value);
+                $this->SendDebug(__FUNCTION__, $Ident . '=' . $Value . ' => ret=' . $r, 0);
+                break;
+            case 'LiveTrackingActive':
+                $r = $this->SwitchLiveTracking((bool) $Value);
+                $this->SendDebug(__FUNCTION__, $Ident . '=' . $Value . ' => ret=' . $r, 0);
+                break;
+            default:
+                $this->SendDebug(__FUNCTION__, 'invalid ident ' . $Ident, 0);
+                break;
+        }
+        if ($r == true) {
+            $this->SetUpdateInterval(15);
         }
     }
 }

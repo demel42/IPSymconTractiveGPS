@@ -18,20 +18,6 @@ class TractiveGpsIO extends IPSModule
 
         $this->RegisterPropertyString('user', '');
         $this->RegisterPropertyString('password', '');
-
-        $this->RegisterPropertyInteger('update_interval', '5');
-
-        $this->RegisterTimer('UpdateData', 0, 'TractiveGps_UpdateData(' . $this->InstanceID . ');');
-        $this->RegisterMessage(0, IPS_KERNELMESSAGE);
-    }
-
-    public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
-    {
-        parent::MessageSink($TimeStamp, $SenderID, $Message, $Data);
-
-        if ($Message == IPS_KERNELMESSAGE && $Data[0] == KR_READY) {
-            $this->UpdateData();
-        }
     }
 
     public function ApplyChanges()
@@ -52,10 +38,6 @@ class TractiveGpsIO extends IPSModule
             return;
         }
         $this->SetStatus(IS_ACTIVE);
-
-        if (IPS_GetKernelRunlevel() == KR_READY) {
-            $this->SetTimerInterval('UpdateData', 1000);
-        }
     }
 
     private function GetFormElements()
@@ -82,16 +64,6 @@ class TractiveGpsIO extends IPSModule
             'caption' => 'Password'
         ];
 
-        $formElements[] = [
-            'type'    => 'Label',
-            'caption' => 'Update data every X minutes'
-        ];
-        $formElements[] = [
-            'type'    => 'NumberSpinner',
-            'name'    => 'update_interval',
-            'caption' => 'Minutes'
-        ];
-
         return $formElements;
     }
 
@@ -101,25 +73,11 @@ class TractiveGpsIO extends IPSModule
 
         $formActions[] = [
             'type'    => 'Button',
-            'caption' => 'Update data',
-            'onClick' => 'TractiveGps_UpdateData($id);'
-        ];
-
-        $formActions[] = [
-            'type'    => 'Button',
             'caption' => 'Test access',
             'onClick' => 'TractiveGps_TestAccess($id);'
         ];
 
         return $formActions;
-    }
-
-    protected function SetUpdateInterval()
-    {
-        $min = $this->ReadPropertyInteger('update_interval');
-        $msec = $min > 0 ? $min * 1000 * 60 : 0;
-        $this->SetTimerInterval('UpdateData', $msec);
-        $this->SendDebug(__FUNCTION__, 'min=' . $min . ', msec=' . $msec, 0);
     }
 
     public function ForwardData($data)
@@ -138,6 +96,33 @@ class TractiveGpsIO extends IPSModule
                 case 'GetIndex':
                     $r = $this->GetIndex($ret);
                     break;
+                case 'GetUpdateData':
+                    $tracker_id = $jdata['tracker_id'];
+                    $pet_id = $jdata['pet_id'];
+                    $this->SendDebug(__FUNCTION__, 'function=' . $jdata['Function'] . ', tracker_id=' . $tracker_id . ', pet_id=' . $pet_id, 0);
+                    $r = $this->GetUpdateData($tracker_id, $pet_id, $ret);
+                    break;
+                case 'SwitchBuzzer':
+                    $tracker_id = $jdata['tracker_id'];
+                    $mode = (bool) $jdata['payload']['mode'] ? 'on' : 'off';
+                    $cmd = 'buzzer_control/' . $mode;
+                    $this->SendDebug(__FUNCTION__, 'function=' . $jdata['Function'] . ', tracker_id=' . $tracker_id . ', cmd=' . $cmd, 0);
+                    $r = $this->ExecuteTrackerCommand($tracker_id, $cmd, $ret);
+                    break;
+                case 'SwitchLight':
+                    $tracker_id = $jdata['tracker_id'];
+                    $mode = (bool) $jdata['payload']['mode'] ? 'on' : 'off';
+                    $cmd = 'led_control/' . $mode;
+                    $this->SendDebug(__FUNCTION__, 'function=' . $jdata['Function'] . ', tracker_id=' . $tracker_id . ', cmd=' . $cmd, 0);
+                    $r = $this->ExecuteTrackerCommand($tracker_id, $cmd, $ret);
+                    break;
+                case 'SwitchLiveTracking':
+                    $tracker_id = $jdata['tracker_id'];
+                    $mode = (bool) $jdata['payload']['mode'] ? 'on' : 'off';
+                    $cmd = 'live_tracking/' . $mode;
+                    $this->SendDebug(__FUNCTION__, 'function=' . $jdata['Function'] . ', tracker_id=' . $tracker_id . ', cmd=' . $cmd, 0);
+                    $r = $this->ExecuteTrackerCommand($tracker_id, $cmd, $ret);
+                    break;
                 default:
                     $this->SendDebug(__FUNCTION__, 'unknown function "' . $jdata['Function'] . '"', 0);
                     break;
@@ -148,31 +133,6 @@ class TractiveGpsIO extends IPSModule
 
         $this->SendDebug(__FUNCTION__, 'ret=' . print_r($ret, true), 0);
         return $ret;
-    }
-
-    public function UpdateData()
-    {
-        if ($this->CheckStatus() == self::$STATUS_INVALID) {
-            if ($this->GetStatus() == self::$IS_NOLOGIN) {
-                $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => pause', 0);
-                $this->SetTimerInterval('UpdateData', 0);
-            } else {
-                $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            }
-            return;
-        }
-
-        $data = [];
-        $this->SendDebug(__FUNCTION__, 'data=' . print_r($data, true), 0);
-        $sdata = [
-            'DataID' => '{91C54CDA-594C-1D6F-6BD8-57545408677F}',
-            'Buffer' => $data,
-        ];
-        $this->SendDebug(__FUNCTION__, 'SendDataToChildren(' . print_r($sdata, true) . ')', 0);
-        $this->SendDataToChildren(json_encode($sdata));
-
-        $this->SetStatus(IS_ACTIVE);
-        $this->SetUpdateInterval();
     }
 
     private function GetAccessToken()
@@ -372,6 +332,12 @@ class TractiveGpsIO extends IPSModule
         return $this->do_ApiCall($func, $postdata, $data);
     }
 
+    private function ExecuteTrackerCommand($tracker_id, $cmd, &$data)
+    {
+        $func = '/tracker/' . $tracker_id . '/command/' . $cmd;
+        return $this->do_ApiCall($func, false, $data);
+    }
+
     private function GetUpdateData($tracker_id, $pet_id, &$data)
     {
         $postdata = [
@@ -381,6 +347,10 @@ class TractiveGpsIO extends IPSModule
             ],
             [
                 '_type' => 'device_pos_report',
+                '_id'   => $tracker_id
+            ],
+            [
+                '_type' => 'tracker',
                 '_id'   => $tracker_id
             ],
             [
@@ -394,10 +364,6 @@ class TractiveGpsIO extends IPSModule
             [
                 '_type' => 'tracker_command_state',
                 '_id'   => $tracker_id . '_live_tracking',
-            ],
-            [
-                '_type' => 'tracker_command_state',
-                '_id'   => $tracker_id . '_pos_request',
             ],
         ];
         return $this->GetDataBulk($postdata, $data);

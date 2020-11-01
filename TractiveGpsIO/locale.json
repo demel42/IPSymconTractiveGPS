@@ -3,6 +3,16 @@
         "de": {
 			"Instance is disabled": "Instanz ist deaktiviert",
 
+			"Account from https://my.tractive.com": "Zugangsdaten von https://my.tractive.com",
+			"Username": "Benutzerkennung",
+			"Password": "Passwort",
+
+			"Test access": "Zugang prüfen",
+
+			"invalid account-data": "Ungültige Zugangsdaten",
+			"valid account-data": "Gültige Zugangsdaten",
+			"registered devices found": "registrierte Geräte gefunden",
+
 			"Instance getting created": "Instanz wird erstellt",
 			"Instance is active": "Instanz ist aktiv",
 			"Instance is deleted": "Instanz wird gelöscht",
