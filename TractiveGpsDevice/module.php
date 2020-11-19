@@ -161,19 +161,19 @@ class TractiveGpsDevice extends IPSModule
             'type'    => 'ValidationTextBox',
             'name'    => 'tracker_id',
             'caption' => 'Tracker-ID',
-			'enabled' => false
+            'enabled' => false
         ];
         $items[] = [
             'type'    => 'ValidationTextBox',
             'name'    => 'model_number',
             'caption' => 'Model',
-			'enabled' => false
+            'enabled' => false
         ];
         $items[] = [
             'type'    => 'ValidationTextBox',
             'name'    => 'pet_id',
             'caption' => 'Pet-ID',
-			'enabled' => false
+            'enabled' => false
         ];
         $formElements[] = [
             'type'    => 'ExpansionPanel',
