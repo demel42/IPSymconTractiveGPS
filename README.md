@@ -18,6 +18,7 @@
 
 ## 1. Funktionsumfang
 
+Integration der GPS-Tracker von ([Tractive](https://tractive.com/de)). Abruf der verfügbaren Informationen wie Ladezustand, Position etc und auslösen der Funktionen sie LiveTracking etc.
 
 ## 2. Voraussetzungen
 
@@ -67,9 +68,9 @@ Mit den Schaltflächen _Erstellen_ bzw. _Alle erstellen_ werden das/die gewählt
 
 Der Aufruf des Konfigurators kann jederzeit wiederholt werden.
 
-Die Produkte werden aufgrund der _?????-ID_ identifiziert.
+Die Produkte werden aufgrund der _Tracker-ID_ identifiziert.
 
-Zu den Geräte-Instanzen werden im Rahmen der Konfiguration Produkttyp-abhängig Variablen angelegt. Zusätzlich kann man in dem Modultyp-spezifischen Konfigurationsdialog weitere Variablen aktivieren.
+Zu den Geräte-Instanzen werden im Rahmen der Konfiguration Variablen angelegt. Zusätzlich kann man in dem Modultyp-spezifischen Konfigurationsdialog weitere Variablen aktivieren.
 
 Die Instanzen können dann in gewohnter Weise im Objektbaum frei positioniert werden.
 
@@ -78,7 +79,7 @@ Die Instanzen können dann in gewohnter Weise im Objektbaum frei positioniert we
 ### TractiveGpsIO
 
 `TractiveGps_UpdateData(int $InstanzID)`
-ruft die Daten der Tractive-Ortungsgeräte ab. Wird automatisch zyklisch durch die Instanz durchgeführt im Abstand wie in der Konfiguration angegeben.
+ruft die Daten des Tractive-Ortungsgeräte ab. Wird automatisch zyklisch durch die Instanz durchgeführt im Abstand wie in der Konfiguration angegeben.
 
 ## 5. Konfiguration
 
@@ -89,14 +90,12 @@ ruft die Daten der Tractive-Ortungsgeräte ab. Wird automatisch zyklisch durch d
 | Eigenschaft               | Typ      | Standardwert | Beschreibung |
 | :------------------------ | :------  | :----------- | :----------- |
 | Zugangsdaten              | string   |              | Benutzername und Passwort von https://my.tractive.com |
-|                           |          |              | |
-| Aktualisiere Daten ...    | integer  | 5            | Aktualisierungsintervall, Angabe in Minuten |
 
 #### Schaltflächen
 
-| Bezeichnung               | Beschreibung |
-| :------------------------ | :----------- |
-| Aktualisiere Daten        | führt eine sofortige Aktualisierung durch |
+| Bezeichnung    | Beschreibung |
+| :------------- | :----------- |
+| Zugang prüfen  | Prüfung der Zugangsdaten |
 
 ### TractiveGpsConfig
 
@@ -115,14 +114,29 @@ werden vom Konfigurator beim Anlegen der Instanz gesetzt.
 
 | Eigenschaft              | Typ      | Standardwert | Beschreibung |
 | :----------------------- | :--------| :----------- | :----------- |
+| Tracker-ID               | string   |              | von TractiveGpsConfig vorgegeben |
+| Modell                   | string   |              | von TractiveGpsConfig vorgegeben |
+| Haustier-ID              | string   |              | von TractiveGpsConfig vorgegeben |
 |                          |          |              | |
+| Aktualisiere Daten ...   | integer  | 5            | Aktualisierungsintervall, Angabe in Minuten |
+
+#### Schaltflächen
+
+| Bezeichnung               | Beschreibung |
+| :------------------------ | :----------- |
+| Aktualisiere Daten        | führt eine sofortige Aktualisierung durch |
 
 ### Variablenprofile
 
 Es werden folgende Variablenprofile angelegt:
+* Boolean<br>
+TractiveGps.Switch
+
 * Integer<br>
+TractiveGps.BatteryLevel
 
 * Float<br>
+TractiveGps.Altitude, TractiveGps.Course, TractiveGps.Location, TractiveGps.Speed, TractiveGps.Uncertainty
 
 ## 6. Anhang
 
@@ -138,5 +152,5 @@ GUIDs
 
 ## 7. Versions-Historie
 
-- 1.0 @ 01.11.2020 18:39 (dev)
+- 1.0 @ 19.11.2020 15:01 (dev)
   - Initiale Version

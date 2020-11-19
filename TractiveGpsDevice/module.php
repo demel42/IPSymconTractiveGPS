@@ -160,17 +160,20 @@ class TractiveGpsDevice extends IPSModule
         $items[] = [
             'type'    => 'ValidationTextBox',
             'name'    => 'tracker_id',
-            'caption' => 'Tracker-ID'
+            'caption' => 'Tracker-ID',
+			'enabled' => false
         ];
         $items[] = [
             'type'    => 'ValidationTextBox',
             'name'    => 'model_number',
-            'caption' => 'Model'
+            'caption' => 'Model',
+			'enabled' => false
         ];
         $items[] = [
             'type'    => 'ValidationTextBox',
             'name'    => 'pet_id',
-            'caption' => 'Pet-ID'
+            'caption' => 'Pet-ID',
+			'enabled' => false
         ];
         $formElements[] = [
             'type'    => 'ExpansionPanel',
@@ -218,6 +221,9 @@ class TractiveGpsDevice extends IPSModule
     protected function SetUpdateInterval($sec = null)
     {
         if ($sec == null) {
+            $sec = $this->CalcNextInterval();
+        }
+        if ($sec == null) {
             $min = $this->ReadPropertyInteger('update_interval');
             $sec = $min * 60;
         }
@@ -263,11 +269,22 @@ class TractiveGpsDevice extends IPSModule
 
     private function decodeUpdateData($data)
     {
+        if ($data == false) {
+            $this->SendDebug(__FUNCTION__, 'no data', 0);
+            return;
+        }
+
+        $jdata = json_decode($data, true);
+        if ($jdata == false) {
+            $this->SendDebug(__FUNCTION__, 'malformed data', 0);
+            return;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'data=' . print_r($jdata, true), 0);
+
         $now = time();
         $is_changed = false;
 
-        $jdata = json_decode($data, true);
-        $this->SendDebug(__FUNCTION__, 'data=' . print_r($jdata, true), 0);
         foreach ($jdata as $elem) {
             $_type = $elem['_type'];
             $this->SendDebug(__FUNCTION__, $_type . ' => ' . print_r($elem, true), 0);
@@ -372,13 +389,13 @@ class TractiveGpsDevice extends IPSModule
     {
         if ($this->GetStatus() == IS_INACTIVE) {
             $this->SendDebug(__FUNCTION__, 'instance is inactive, skip', 0);
-            return;
+            return false;
         }
 
         if ($this->HasActiveParent() == false) {
             $this->SendDebug(__FUNCTION__, 'has no active parent instance', 0);
             $this->LogMessage('has no active parent instance', KL_WARNING);
-            return;
+            return false;
         }
 
         $tracker_id = $this->ReadPropertyString('tracker_id');
@@ -472,21 +489,98 @@ class TractiveGpsDevice extends IPSModule
             case 'BuzzerActive':
                 $r = $this->SwitchBuzzer((bool) $Value);
                 $this->SendDebug(__FUNCTION__, $Ident . '=' . $Value . ' => ret=' . $r, 0);
+                $interval = 15;
+                $duration = 60;
                 break;
             case 'LightActive':
                 $r = $this->SwitchLight((bool) $Value);
                 $this->SendDebug(__FUNCTION__, $Ident . '=' . $Value . ' => ret=' . $r, 0);
+                $interval = 15;
+                $duration = 60;
                 break;
             case 'LiveTrackingActive':
                 $r = $this->SwitchLiveTracking((bool) $Value);
+                if ((bool) $Value) {
+                    $interval = 5;
+                    $j = json_decode($r, true);
+                    $duration = isset($j['timeout']) ? $j['timeout'] + 30 : 300;
+                } else {
+                    $interval = 15;
+                    $duration = 60;
+                }
                 $this->SendDebug(__FUNCTION__, $Ident . '=' . $Value . ' => ret=' . $r, 0);
                 break;
             default:
                 $this->SendDebug(__FUNCTION__, 'invalid ident ' . $Ident, 0);
                 break;
         }
-        if ($r == true) {
-            $this->SetUpdateInterval(15);
+        if ($r != false) {
+            $this->SaveUpdateInterval($Ident, $interval, $duration);
+            $this->SetUpdateInterval();
         }
+    }
+
+    private function SaveUpdateInterval($ident, $interval, $duration)
+    {
+        $this->SendDebug(__FUNCTION__, 'ident=' . $ident . ', interval=' . $interval . ', duration=' . $duration, 0);
+        $sdata = $this->GetBuffer('UpdateInterval');
+        $entryList = json_decode($sdata, true);
+        if ($entryList == false) {
+            $entryList = [];
+        }
+        $entryList[$ident] = [
+            'interval' => $interval,
+            'until'    => time() + $duration
+        ];
+        $this->SendDebug(__FUNCTION__, 'entryList=' . print_r($entryList, true), 0);
+        $this->SetBuffer('UpdateInterval', json_encode($entryList));
+    }
+
+    private function CalcNextInterval()
+    {
+        $sdata = $this->GetBuffer('UpdateInterval');
+        $entryList = json_decode($sdata, true);
+        if ($entryList == false) {
+            $entryList = [];
+        }
+        $now = time();
+        $interval = null;
+        $_entryList = [];
+        foreach ($entryList as $ident => $entry) {
+            $this->SendDebug(__FUNCTION__, 'entry=' . print_r($entry, true), 0);
+            if ($entry['until'] < $now) {
+                continue;
+            }
+            $_entryList[$ident] = $entry;
+            if ($interval == null || $interval > $entry['interval']) {
+                $interval = $entry['interval'];
+            }
+        }
+        $this->SetBuffer('UpdateInterval', json_encode($_entryList));
+        $this->SendDebug(__FUNCTION__, 'interval=' . $interval . ', entryList=' . print_r($entryList, true), 0);
+        return $interval;
+    }
+
+    private function ClearUpdateInterval($ident)
+    {
+        $this->SendDebug(__FUNCTION__, 'ident=' . $ident, 0);
+        $sdata = $this->GetBuffer('UpdateInterval');
+        $entryList = json_decode($sdata, true);
+        if ($entryList == false) {
+            $entryList = [];
+        }
+        $now = time();
+        $_entryList = [];
+        foreach ($entryList as $_ident => $entry) {
+            if ($_ident == $ident) {
+                continue;
+            }
+            if ($entry['until'] < $now) {
+                continue;
+            }
+            $_entryList[$_ident] = $entry;
+        }
+        $this->SendDebug(__FUNCTION__, 'entryList=' . print_r($entryList, true), 0);
+        $this->SetBuffer('UpdateInterval', json_encode($_entryList));
     }
 }
