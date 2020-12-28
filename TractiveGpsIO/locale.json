@@ -8,6 +8,7 @@
 			"Password": "Passwort",
 
 			"Test access": "Zugang prüfen",
+			"Clear Token": "Token löschen",
 
 			"invalid account-data": "Ungültige Zugangsdaten",
 			"valid account-data": "Gültige Zugangsdaten",

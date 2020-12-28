@@ -76,6 +76,11 @@ class TractiveGpsIO extends IPSModule
             'caption' => 'Test access',
             'onClick' => 'TractiveGps_TestAccess($id);'
         ];
+        $formActions[] = [
+            'type'    => 'Button',
+            'caption' => 'Clear Token',
+            'onClick' => 'TractiveGps_ClearToken($id);'
+        ];
 
         return $formActions;
     }
@@ -255,6 +260,10 @@ class TractiveGpsIO extends IPSModule
         } elseif ($httpcode == 401) {
             $statuscode = self::$IS_UNAUTHORIZED;
             $err = 'got http-code ' . $httpcode . ' (unauthorized)';
+        } elseif ($httpcode == 403) {
+            $jdata = json_decode($cdata, true);
+            $statuscode = self::$IS_UNAUTHORIZED;
+            $err = 'got http-code ' . $httpcode . ' (forbidden)';
         } elseif ($httpcode >= 500 && $httpcode <= 599) {
             $statuscode = self::$IS_SERVERERROR;
             $err = 'got http-code ' . $httpcode . ' (server error)';
@@ -488,5 +497,12 @@ class TractiveGpsIO extends IPSModule
             $txt .= $n_trackers . ' ' . $this->Translate('registered devices found');
         }
         echo $txt;
+    }
+
+    public function ClearToken()
+    {
+        $access_token = $this->GetAccessToken();
+        $this->SendDebug(__FUNCTION__, 'clear access_token=' . $access_token, 0);
+        $this->SetBuffer('AccessToken', '');
     }
 }
