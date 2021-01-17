@@ -152,7 +152,7 @@ GUIDs
 
 ## 7. Versions-Historie
 
-- 1.1 @ 28.12.2020 11:38 (beta)
+- 1.1 @ 28.12.2020 11:38
   - IO-Instanz: Funktion zum Löschen des AccessToken
   - PHP_CS_FIXER_IGNORE_ENV=1 in github/workflows/style.yml eingefügt
 
