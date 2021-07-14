@@ -1,10 +1,9 @@
 {
     "translations": {
         "de": {
-			"Instance is disabled": "Instanz ist deaktiviert",
-
 			"Instance has no active parent instance": "Instanz hat keine aktive übergeordnete Instanz",
-			"Instance is disabled": "Instanz ist deaktiviert",
+			"Disable instance": "Instanz deaktivieren",
+
 			"Tractive GPS Tracker": "Tractive GPS Tracker",
 			"Tracker-ID": "Tracker-ID",
 			"Pet-ID": "Haustier-ID",
