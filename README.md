@@ -32,9 +32,9 @@ Integration der GPS-Tracker von ([Tractive](https://tractive.com/de)). Abruf der
 
 **Installieren über den Module-Store**
 
-Die Webconsole von IP-Symcon mit http://<IP-Symcon IP>:3777/console/ öffnen.
+Die Webconsole von IP-Symcon mit http://\<IP-Symcon IP\>:3777/console/ öffnen.
 
-Anschließend oben rechts auf das Symbol für den Modulstore (IP-Symcon > 5.1) klicken
+Anschließend oben rechts auf das Symbol für den Modulstore klicken
 
 Im Suchfeld nun Tractive eingeben, das Modul auswählen und auf Installieren drücken.
 
