@@ -1,3 +1,6 @@
 [submodule ".style"]
 	path = .style
 	url = https://github.com/demel42/StylePHP.git
+[submodule "libs/CommonStubs"]
+	path = libs/CommonStubs
+	url = https://demel42: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@github.com/demel42/CommonStubs.git
