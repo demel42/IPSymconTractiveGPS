@@ -55,4 +55,24 @@ trait TractiveGpsLocalLib
 
         return $class;
     }
+
+    public function InstallVarProfiles(bool $reInstall = false)
+    {
+        if ($reInstall) {
+            $this->SendDebug(__FUNCTION__, 'reInstall=' . $this->bool2str($reInstall), 0);
+        }
+
+        $associations = [];
+        $associations[] = ['Wert' => false, 'Name' => $this->Translate('Off'), 'Farbe' => -1];
+        $associations[] = ['Wert' => true, 'Name' => $this->Translate('On'), 'Farbe' => -1];
+        $this->CreateVarProfile('TractiveGps.Switch', VARIABLETYPE_BOOLEAN, '', 0, 0, 0, 0, '', $associations, $reInstall);
+
+        $this->CreateVarProfile('TractiveGps.BatteryLevel', VARIABLETYPE_INTEGER, ' %', 0, 0, 0, 0, '', [], $reInstall);
+
+        $this->CreateVarProfile('TractiveGps.Altitude', VARIABLETYPE_FLOAT, ' m', 0, 0, 0, 0, '', [], $reInstall);
+        $this->CreateVarProfile('TractiveGps.Speed', VARIABLETYPE_FLOAT, ' km/h', 0, 0, 0, 0, '', [], $reInstall);
+        $this->CreateVarProfile('TractiveGps.Course', VARIABLETYPE_FLOAT, ' °', 0, 0, 0, 0, '', [], $reInstall);
+        $this->CreateVarProfile('TractiveGps.Location', VARIABLETYPE_FLOAT, ' °', 0, 0, 0, 5, '', [], $reInstall);
+        $this->CreateVarProfile('TractiveGps.Uncertainty', VARIABLETYPE_FLOAT, ' m', 0, 0, 0, 0, '', [], $reInstall);
+    }
 }

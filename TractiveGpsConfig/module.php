@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../libs/common.php';  // globale Funktionen
+require_once __DIR__ . '/../libs/CommonStubs/common.php'; // globale Funktionen
 require_once __DIR__ . '/../libs/local.php';   // lokale Funktionen
 
 class TractiveGpsConfig extends IPSModule
 {
-    use TractiveGpsCommonLib;
+    use StubsCommonLib;
     use TractiveGpsLocalLib;
 
     public function Create()
@@ -17,6 +17,21 @@ class TractiveGpsConfig extends IPSModule
         $this->RegisterPropertyInteger('ImportCategoryID', 0);
 
         $this->ConnectParent('{0661D1B3-4375-1B37-7D59-1592111C8F8D}');
+    }
+
+    private function CheckConfiguration()
+    {
+        $s = '';
+        $r = [];
+
+        if ($r != []) {
+            $s = $this->Translate('The following points of the configuration are incorrect') . ':' . PHP_EOL;
+            foreach ($r as $p) {
+                $s .= '- ' . $p . PHP_EOL;
+            }
+        }
+
+        return $s;
     }
 
     public function ApplyChanges()
@@ -30,7 +45,7 @@ class TractiveGpsConfig extends IPSModule
         $propertyNames = ['ImportCategoryID'];
         foreach ($propertyNames as $name) {
             $oid = $this->ReadPropertyInteger($name);
-            if ($oid > 0) {
+            if ($oid >= 10000) {
                 $this->RegisterReference($oid);
             }
         }
@@ -38,65 +53,53 @@ class TractiveGpsConfig extends IPSModule
         $this->SetStatus(IS_ACTIVE);
     }
 
-    public function GetConfigurationForm()
-    {
-        $formElements = $this->GetFormElements();
-        $formActions = $this->GetFormActions();
-        $formStatus = $this->GetFormStatus();
-
-        $form = json_encode(['elements' => $formElements, 'actions' => $formActions, 'status' => $formStatus]);
-        if ($form == '') {
-            $this->SendDebug(__FUNCTION__, 'json_error=' . json_last_error_msg(), 0);
-            $this->SendDebug(__FUNCTION__, '=> formElements=' . print_r($formElements, true), 0);
-            $this->SendDebug(__FUNCTION__, '=> formActions=' . print_r($formActions, true), 0);
-            $this->SendDebug(__FUNCTION__, '=> formStatus=' . print_r($formStatus, true), 0);
-        }
-        return $form;
-    }
-
     private function SetLocation()
     {
-        $category = $this->ReadPropertyInteger('ImportCategoryID');
+        $catID = $this->ReadPropertyInteger('ImportCategoryID');
         $tree_position = [];
-        if ($category > 0 && IPS_ObjectExists($category)) {
-            $tree_position[] = IPS_GetName($category);
-            $parent = IPS_GetObject($category)['ParentID'];
-            while ($parent > 0) {
-                if ($parent > 0) {
-                    $tree_position[] = IPS_GetName($parent);
+        if ($catID >= 10000 && IPS_ObjectExists($catID)) {
+            $tree_position[] = IPS_GetName($catID);
+            $parID = IPS_GetObject($catID)['ParentID'];
+            while ($parID > 0) {
+                if ($parID > 0) {
+                    $tree_position[] = IPS_GetName($parID);
                 }
-                $parent = IPS_GetObject($parent)['ParentID'];
+                $parID = IPS_GetObject($parID)['ParentID'];
             }
             $tree_position = array_reverse($tree_position);
         }
+        $this->SendDebug(__FUNCTION__, 'tree_position=' . print_r($tree_position, true), 0);
         return $tree_position;
     }
 
     private function getConfiguratorValues()
     {
-        $entries = [];
+        $config_list = [];
+
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return $config_list;
+        }
 
         if ($this->HasActiveParent() == false) {
             $this->SendDebug(__FUNCTION__, 'has no active parent', 0);
-            $this->LogMessage('has no active parent instance', KL_WARNING);
-            return $entries;
+            return $config_list;
         }
 
-        $SendData = ['DataID' => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}', 'Function' => 'GetIndex'];
-        $data = $this->SendDataToParent(json_encode($SendData));
-        $this->SendDebug(__FUNCTION__, 'data=' . $data, 0);
+        $data = ['DataID' => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}', 'Function' => 'GetIndex'];
+        $ret = $this->SendDataToParent(json_encode($data));
+        $devices = json_decode($ret, true);
+        $this->SendDebug(__FUNCTION__, 'devices=' . print_r($devices, true), 0);
 
-        if ($data != '') {
-            $elems = json_decode($data, true);
-            $this->SendDebug(__FUNCTION__, 'elems=' . print_r($elems, true), 0);
+        $guid = '{A259E80D-C7B4-F5A9-F82B-B9B05F71B4F3}';
+        $instIDs = IPS_GetInstanceListByModuleID($guid);
 
-            $guid = '{A259E80D-C7B4-F5A9-F82B-B9B05F71B4F3}';
-            $instIDs = IPS_GetInstanceListByModuleID($guid);
-            foreach ($elems as $elem) {
-                $model_number = $elem['model_number'];
-                $tracker_id = $elem['tracker_id'];
-                $pet_name = $elem['pet_name'];
-                $pet_id = $elem['pet_id'];
+        if (is_array($devices) && count($devices)) {
+            foreach ($devices as $device) {
+                $model_number = $device['model_number'];
+                $tracker_id = $device['tracker_id'];
+                $pet_name = $device['pet_name'];
+                $pet_id = $device['pet_id'];
 
                 $instanceID = 0;
                 foreach ($instIDs as $instID) {
@@ -109,8 +112,8 @@ class TractiveGpsConfig extends IPSModule
 
                 $entry = [
                     'instanceID'   => $instanceID,
-                    'model_number' => $model_number,
                     'name'         => $pet_name,
+                    'model_number' => $model_number,
                     'tracker_id'   => $tracker_id,
                     'create'       => [
                         'moduleID'      => $guid,
@@ -123,11 +126,37 @@ class TractiveGpsConfig extends IPSModule
                         ]
                     ]
                 ];
-                $entries[] = $entry;
+                $config_list[] = $entry;
             }
         }
+        foreach ($instIDs as $instID) {
+            $fnd = false;
+            foreach ($config_list as $entry) {
+                if ($entry['instanceID'] == $instID) {
+                    $fnd = true;
+                    break;
+                }
+            }
+            if ($fnd) {
+                continue;
+            }
 
-        return $entries;
+            $name = IPS_GetName($instID);
+            $model_number = IPS_GetProperty($instID, 'model_number');
+            $tracker_id = IPS_GetProperty($instID, 'tracker_id');
+
+            $entry = [
+                'instanceID'        => $instID,
+                'name'              => $name,
+                'model_number'      => $model_number,
+                'tracker_id'        => $tracker_id,
+            ];
+
+            $config_list[] = $entry;
+            $this->SendDebug(__FUNCTION__, 'missing entry=' . print_r($entry, true), 0);
+        }
+
+        return $config_list;
     }
 
     private function GetFormElements()
@@ -138,6 +167,17 @@ class TractiveGpsConfig extends IPSModule
             $formElements[] = [
                 'type'    => 'Label',
                 'caption' => 'Instance has no active parent instance',
+            ];
+        }
+
+        @$s = $this->CheckConfiguration();
+        if ($s != '') {
+            $formElements[] = [
+                'type'    => 'Label',
+                'caption' => $s,
+            ];
+            $formElements[] = [
+                'type'    => 'Label',
             ];
         }
 
@@ -192,6 +232,21 @@ class TractiveGpsConfig extends IPSModule
     {
         $formActions = [];
 
+        $formActions[] = $this->GetInformationForm();
+        $formActions[] = $this->GetReferencesForm();
+
         return $formActions;
+    }
+
+    public function RequestAction($ident, $value)
+    {
+        if ($this->CommonRequestAction($ident, $value)) {
+            return;
+        }
+        switch ($ident) {
+            default:
+                $this->SendDebug(__FUNCTION__, 'invalid ident ' . $ident, 0);
+                break;
+        }
     }
 }

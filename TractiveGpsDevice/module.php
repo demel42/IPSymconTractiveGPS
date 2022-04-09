@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../libs/common.php';  // globale Funktionen
+require_once __DIR__ . '/../libs/CommonStubs/common.php'; // globale Funktionen
 require_once __DIR__ . '/../libs/local.php';   // lokale Funktionen
 
 class TractiveGpsDevice extends IPSModule
 {
-    use TractiveGpsCommonLib;
+    use StubsCommonLib;
     use TractiveGpsLocalLib;
 
     public function Create()
@@ -20,26 +20,44 @@ class TractiveGpsDevice extends IPSModule
         $this->RegisterPropertyString('pet_id', '');
         $this->RegisterPropertyString('model_number', '');
 
+        $this->RegisterPropertyBoolean('save_position', false);
+
         $this->RegisterPropertyInteger('update_interval', '5');
 
-        $associations = [];
-        $associations[] = ['Wert' => false, 'Name' => $this->Translate('Off'), 'Farbe' => -1];
-        $associations[] = ['Wert' => true, 'Name' => $this->Translate('On'), 'Farbe' => -1];
-        $this->CreateVarProfile('TractiveGps.Switch', VARIABLETYPE_BOOLEAN, '', 0, 0, 0, 0, '', $associations);
-
-        $this->CreateVarProfile('TractiveGps.BatteryLevel', VARIABLETYPE_INTEGER, ' %', 0, 0, 0, 0, '');
-
-        $this->CreateVarProfile('TractiveGps.Altitude', VARIABLETYPE_FLOAT, ' m', 0, 0, 0, 0, '');
-        $this->CreateVarProfile('TractiveGps.Speed', VARIABLETYPE_FLOAT, ' km/h', 0, 0, 0, 0, '');
-        $this->CreateVarProfile('TractiveGps.Course', VARIABLETYPE_FLOAT, ' °', 0, 0, 0, 0, '');
-        $this->CreateVarProfile('TractiveGps.Location', VARIABLETYPE_FLOAT, ' °', 0, 0, 0, 5, '');
-        $this->CreateVarProfile('TractiveGps.Uncertainty', VARIABLETYPE_FLOAT, ' m', 0, 0, 0, 0, '');
+        $this->InstallVarProfiles(false);
 
         $this->RegisterTimer('UpdateData', 0, 'TractiveGps_UpdateData(' . $this->InstanceID . ');');
 
         $this->ConnectParent('{0661D1B3-4375-1B37-7D59-1592111C8F8D}');
 
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
+    }
+
+    private function CheckConfiguration()
+    {
+        $s = '';
+        $r = [];
+
+        $tracker_id = $this->ReadPropertyString('tracker_id');
+        if ($tracker_id == '') {
+            $this->SendDebug(__FUNCTION__, '"tracker_id" is needed', 0);
+            $r[] = $this->Translate('Tracker-ID must be specified');
+        }
+
+        $pet_id = $this->ReadPropertyString('pet_id');
+        if ($pet_id == '') {
+            $this->SendDebug(__FUNCTION__, '"pet_id" is needed', 0);
+            $r[] = $this->Translate('Pet-ID must be specified');
+        }
+
+        if ($r != []) {
+            $s = $this->Translate('The following points of the configuration are incorrect') . ':' . PHP_EOL;
+            foreach ($r as $p) {
+                $s .= '- ' . $p . PHP_EOL;
+            }
+        }
+
+        return $s;
     }
 
     public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
@@ -58,9 +76,9 @@ class TractiveGpsDevice extends IPSModule
         $tracker_id = $this->ReadPropertyString('tracker_id');
         $pet_id = $this->ReadPropertyString('pet_id');
         $model_number = $this->ReadPropertyString('model_number');
+        $save_position = $this->ReadPropertyBoolean('save_position');
 
         $vpos = 1;
-
         $this->MaintainVariable('State', $this->Translate('State'), VARIABLETYPE_STRING, '', $vpos++, true);
 
         $vpos = 10;
@@ -91,6 +109,7 @@ class TractiveGpsDevice extends IPSModule
         $vpos = 90;
         $this->MaintainVariable('LastUpdate', $this->Translate('Last update'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
         $this->MaintainVariable('LastChange', $this->Translate('Last change'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
+        $this->MaintainVariable('Position', $this->Translate('Position'), VARIABLETYPE_STRING, '', $vpos++, $save_position);
 
         $summary = $model_number . ' (#' . $tracker_id . ')';
         $this->SetSummary($summary);
@@ -100,43 +119,34 @@ class TractiveGpsDevice extends IPSModule
             $this->UnregisterReference($ref);
         }
 
-        if ($tracker_id == '' || $pet_id == '') {
-            $this->SetStatus(self::$IS_INVALIDCONFIG);
-            return;
-        }
-
-        $this->SetStatus(IS_ACTIVE);
-
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {
             $this->SetUpdateInterval(0);
             $this->SetStatus(IS_INACTIVE);
             return;
         }
+
+        if ($this->CheckConfiguration() != false) {
+            $this->SetUpdateInterval(0);
+            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            return;
+        }
+
+        $this->SetStatus(IS_ACTIVE);
+
         if (IPS_GetKernelRunlevel() == KR_READY) {
             $this->SetUpdateInterval(1);
         }
     }
 
-    public function GetConfigurationForm()
-    {
-        $formElements = $this->GetFormElements();
-        $formActions = $this->GetFormActions();
-        $formStatus = $this->GetFormStatus();
-
-        $form = json_encode(['elements' => $formElements, 'actions' => $formActions, 'status' => $formStatus]);
-        if ($form == '') {
-            $this->SendDebug(__FUNCTION__, 'json_error=' . json_last_error_msg(), 0);
-            $this->SendDebug(__FUNCTION__, '=> formElements=' . print_r($formElements, true), 0);
-            $this->SendDebug(__FUNCTION__, '=> formActions=' . print_r($formActions, true), 0);
-            $this->SendDebug(__FUNCTION__, '=> formStatus=' . print_r($formStatus, true), 0);
-        }
-        return $form;
-    }
-
     private function GetFormElements()
     {
         $formElements = [];
+
+        $formElements[] = [
+            'type'    => 'Label',
+            'caption' => 'Tractive GPS Tracker'
+        ];
 
         if ($this->HasActiveParent() == false) {
             $formElements[] = [
@@ -145,15 +155,21 @@ class TractiveGpsDevice extends IPSModule
             ];
         }
 
+        @$s = $this->CheckConfiguration();
+        if ($s != '') {
+            $formElements[] = [
+                'type'    => 'Label',
+                'caption' => $s,
+            ];
+            $formElements[] = [
+                'type'    => 'Label',
+            ];
+        }
+
         $formElements[] = [
             'type'    => 'CheckBox',
             'name'    => 'module_disable',
             'caption' => 'Disable instance'
-        ];
-
-        $formElements[] = [
-            'type'    => 'Label',
-            'caption' => 'Tractive GPS Tracker'
         ];
 
         $items = [];
@@ -182,13 +198,20 @@ class TractiveGpsDevice extends IPSModule
         ];
 
         $formElements[] = [
-            'type'    => 'Label',
-            'caption' => 'Update data every X minutes'
-        ];
-        $formElements[] = [
             'type'    => 'NumberSpinner',
             'name'    => 'update_interval',
-            'caption' => 'Minutes'
+            'suffix'  => 'Minutes',
+            'caption' => 'Update interval',
+        ];
+
+        $formElements[] = [
+            'type'    => 'Label',
+            'caption' => 'save position to (logged) variable \'Position\''
+        ];
+        $formElements[] = [
+            'type'    => 'CheckBox',
+            'name'    => 'save_position',
+            'caption' => 'save position'
         ];
 
         return $formElements;
@@ -206,14 +229,19 @@ class TractiveGpsDevice extends IPSModule
 
         $formActions[] = [
             'type'      => 'ExpansionPanel',
-            'caption'   => 'Test area',
+            'caption'   => 'Expert area',
             'expanded ' => false,
             'items'     => [
                 [
-                    'type'    => 'TestCenter',
-                ]
-            ]
+                    'type'    => 'Button',
+                    'caption' => 'Re-install variable-profiles',
+                    'onClick' => 'TractiveGps_InstallVarProfiles($id, true);'
+                ],
+            ],
         ];
+
+        $formActions[] = $this->GetInformationForm();
+        $formActions[] = $this->GetReferencesForm();
 
         return $formActions;
     }
@@ -311,6 +339,19 @@ class TractiveGpsDevice extends IPSModule
 
                     $altitude = $this->GetArrayElem($elem, 'altitude', '');
                     $this->SaveValue('Altitude', $altitude, $is_changed);
+
+                    $save_position = $this->ReadPropertyBoolean('save_position');
+                    if ($save_position) {
+                        $pos = json_encode([
+                            'latitude'  => (float) $this->format_float($lat, 6),
+                            'longitude' => (float) $this->format_float($lng, 6),
+                            'altitude'  => (float) $altitude,
+                        ]);
+                        if ($this->GetValue('Position') != $pos) {
+                            $this->SetValue('Position', $pos);
+                            $this->SendDebug(__FUNCTION__, 'changed Position=' . $pos, 0);
+                        }
+                    }
 
                     $speed = $this->GetArrayElem($elem, 'speed', '');
                     if ($speed != '') {
@@ -477,30 +518,34 @@ class TractiveGpsDevice extends IPSModule
         return $this->SendTrackerCommand(__FUNCTION__, $payload);
     }
 
-    public function RequestAction($Ident, $Value)
+    public function RequestAction($ident, $value)
     {
+        if ($this->CommonRequestAction($ident, $value)) {
+            return;
+        }
+
         if ($this->GetStatus() == IS_INACTIVE) {
             $this->SendDebug(__FUNCTION__, 'instance is inactive, skip', 0);
             return;
         }
 
         $r = false;
-        switch ($Ident) {
+        switch ($ident) {
             case 'BuzzerActive':
-                $r = $this->SwitchBuzzer((bool) $Value);
-                $this->SendDebug(__FUNCTION__, $Ident . '=' . $Value . ' => ret=' . $r, 0);
+                $r = $this->SwitchBuzzer((bool) $value);
+                $this->SendDebug(__FUNCTION__, $ident . '=' . $value . ' => ret=' . $r, 0);
                 $interval = 15;
                 $duration = 60;
                 break;
             case 'LightActive':
-                $r = $this->SwitchLight((bool) $Value);
-                $this->SendDebug(__FUNCTION__, $Ident . '=' . $Value . ' => ret=' . $r, 0);
+                $r = $this->SwitchLight((bool) $value);
+                $this->SendDebug(__FUNCTION__, $ident . '=' . $value . ' => ret=' . $r, 0);
                 $interval = 15;
                 $duration = 60;
                 break;
             case 'LiveTrackingActive':
-                $r = $this->SwitchLiveTracking((bool) $Value);
-                if ((bool) $Value) {
+                $r = $this->SwitchLiveTracking((bool) $value);
+                if ((bool) $value) {
                     $interval = 5;
                     $j = json_decode($r, true);
                     $duration = isset($j['timeout']) ? $j['timeout'] + 30 : 300;
@@ -508,14 +553,14 @@ class TractiveGpsDevice extends IPSModule
                     $interval = 15;
                     $duration = 60;
                 }
-                $this->SendDebug(__FUNCTION__, $Ident . '=' . $Value . ' => ret=' . $r, 0);
+                $this->SendDebug(__FUNCTION__, $ident . '=' . $value . ' => ret=' . $r, 0);
                 break;
             default:
-                $this->SendDebug(__FUNCTION__, 'invalid ident ' . $Ident, 0);
+                $this->SendDebug(__FUNCTION__, 'invalid ident ' . $ident, 0);
                 break;
         }
         if ($r != false) {
-            $this->SaveUpdateInterval($Ident, $interval, $duration);
+            $this->SaveUpdateInterval($ident, $interval, $duration);
             $this->SetUpdateInterval();
         }
     }

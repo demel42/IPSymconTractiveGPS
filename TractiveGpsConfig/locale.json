@@ -1,7 +1,10 @@
 {
-    "translations": {
-        "de": {
+	"translations": {
+		"de": {
 			"Instance has no active parent instance": "Instanz hat keine aktive übergeordnete Instanz",
+
+			"The following points of the configuration are incorrect":
+				"Die folgenden Punkte der Konfiguration sind fehlerhaft",
 
 			"category for devices to be created": "Kategorie für anzulegende Geräte",
 			"category": "Kategorie",
@@ -9,6 +12,35 @@
 			"Model": "Modell",
 			"Pet": "Haustier",
 			"Id": "Id",
+
+			"Test area": "Test-Bereich",
+
+			"Expert area": "Experten-Bereich",
+			"Re-install variable-profiles": "Variablenprofile erneut einrichten",
+
+			"Information": "Information",
+
+			"Category": "Kategorie",
+			"Instance": "Instanz",
+			"Variable": "Variable",
+			"Script": "Skript",
+			"Event": "Ereignis",
+			"Medium": "Medium",
+			"Link": "Verknüpfung",
+			"PHP script": "PHP-Skript",
+			"Flow plan": "Ablaufplan",
+			"Triggered event": "Ausgelöstes Ereignis",
+			"Cyclic event": "Zyklisches Ereignis",
+			"Scheduled event": "Geplantes Ereignis",
+			"References": "Referenzen",
+			"by instance used objects": "durch die Instanz verwendete Objekte",
+			"Objects using the instance": "Objekte, die die Instanz verwenden",
+			"Referenced statusvariables": "referenzierte Statusvariablen",
+			"Ident": "Ident",
+			"Object": "Objekt",
+			"Area": "Bereich",
+			"Name": "Bezeichnung",
+			"Open object": "Objekt öffnen",
 
 			"Instance getting created": "Instanz wird erstellt",
 			"Instance is active": "Instanz ist aktiv",
@@ -23,6 +55,6 @@
 			"Instance is inactive (invalid data)": "Instanz ist inaktiv (ungültige Daten)",
 			"Instance is inactive (no device)": "Instanz ist inaktiv (kein Gerät)",
 			"Instance is inactive (device missing)": "Instanz ist inaktiv (Gerät ist unbekannt)"
-        }
-    }
+		}
+	}
 }

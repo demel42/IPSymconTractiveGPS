@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../libs/common.php';  // globale Funktionen
+require_once __DIR__ . '/../libs/CommonStubs/common.php'; // globale Funktionen
 require_once __DIR__ . '/../libs/local.php';   // lokale Funktionen
 
 class TractiveGpsIO extends IPSModule
 {
-    use TractiveGpsCommonLib;
+    use StubsCommonLib;
     use TractiveGpsLocalLib;
 
     public function Create()
@@ -18,6 +18,33 @@ class TractiveGpsIO extends IPSModule
 
         $this->RegisterPropertyString('user', '');
         $this->RegisterPropertyString('password', '');
+    }
+
+    private function CheckConfiguration()
+    {
+        $s = '';
+        $r = [];
+
+        $user = $this->ReadPropertyString('user');
+        if ($user == '') {
+            $this->SendDebug(__FUNCTION__, '"user" is needed', 0);
+            $r[] = $this->Translate('Username must be specified');
+        }
+
+        $password = $this->ReadPropertyString('password');
+        if ($password == '') {
+            $this->SendDebug(__FUNCTION__, '"password" is needed', 0);
+            $r[] = $this->Translate('Password must be specified');
+        }
+
+        if ($r != []) {
+            $s = $this->Translate('The following points of the configuration are incorrect') . ':' . PHP_EOL;
+            foreach ($r as $p) {
+                $s .= '- ' . $p . PHP_EOL;
+            }
+        }
+
+        return $s;
     }
 
     public function ApplyChanges()
@@ -43,16 +70,29 @@ class TractiveGpsIO extends IPSModule
     private function GetFormElements()
     {
         $formElements = [];
+
+        $formElements[] = [
+            'type'    => 'Label',
+            'caption' => 'Account from https://my.tractive.com'
+        ];
+
+        @$s = $this->CheckConfiguration();
+        if ($s != '') {
+            $formElements[] = [
+                'type'    => 'Label',
+                'caption' => $s,
+            ];
+            $formElements[] = [
+                'type'    => 'Label',
+            ];
+        }
+
         $formElements[] = [
             'type'    => 'CheckBox',
             'name'    => 'module_disable',
             'caption' => 'Disable instance'
         ];
 
-        $formElements[] = [
-            'type'    => 'Label',
-            'caption' => 'Account from https://my.tractive.com'
-        ];
         $formElements[] = [
             'type'    => 'ValidationTextBox',
             'name'    => 'user',
@@ -81,6 +121,9 @@ class TractiveGpsIO extends IPSModule
             'caption' => 'Clear Token',
             'onClick' => 'TractiveGps_ClearToken($id);'
         ];
+
+        $formActions[] = $this->GetInformationForm();
+        $formActions[] = $this->GetReferencesForm();
 
         return $formActions;
     }
@@ -504,5 +547,17 @@ class TractiveGpsIO extends IPSModule
         $access_token = $this->GetAccessToken();
         $this->SendDebug(__FUNCTION__, 'clear access_token=' . $access_token, 0);
         $this->SetBuffer('AccessToken', '');
+    }
+
+    public function RequestAction($ident, $value)
+    {
+        if ($this->CommonRequestAction($ident, $value)) {
+            return;
+        }
+        switch ($ident) {
+            default:
+                $this->SendDebug(__FUNCTION__, 'invalid ident ' . $ident, 0);
+                break;
+        }
     }
 }

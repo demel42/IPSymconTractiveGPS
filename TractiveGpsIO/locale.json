@@ -3,6 +3,11 @@
         "de": {
 			"Disable instance": "Instanz deaktivieren",
 
+			"The following points of the configuration are incorrect":
+				"Die folgenden Punkte der Konfiguration sind fehlerhaft",
+			"Username must be specified": "Benutzer muss angegeben sein",
+			"Password must be specified": "Passwort muss angegeben sein",
+
 			"Account from https://my.tractive.com": "Zugangsdaten von https://my.tractive.com",
 			"Username": "Benutzerkennung",
 			"Password": "Passwort",
@@ -13,6 +18,35 @@
 			"invalid account-data": "Ungültige Zugangsdaten",
 			"valid account-data": "Gültige Zugangsdaten",
 			"registered devices found": "registrierte Geräte gefunden",
+
+			"Test area": "Test-Bereich",
+
+			"Expert area": "Experten-Bereich",
+			"Re-install variable-profiles": "Variablenprofile erneut einrichten",
+
+			"Information": "Information",
+
+			"Category": "Kategorie",
+			"Instance": "Instanz",
+			"Variable": "Variable",
+			"Script": "Skript",
+			"Event": "Ereignis",
+			"Medium": "Medium",
+			"Link": "Verknüpfung",
+			"PHP script": "PHP-Skript",
+			"Flow plan": "Ablaufplan",
+			"Triggered event": "Ausgelöstes Ereignis",
+			"Cyclic event": "Zyklisches Ereignis",
+			"Scheduled event": "Geplantes Ereignis",
+			"References": "Referenzen",
+			"by instance used objects": "durch die Instanz verwendete Objekte",
+			"Objects using the instance": "Objekte, die die Instanz verwenden",
+			"Referenced statusvariables": "referenzierte Statusvariablen",
+			"Ident": "Ident",
+			"Object": "Objekt",
+			"Area": "Bereich",
+			"Name": "Bezeichnung",
+			"Open object": "Objekt öffnen",
 
 			"Instance getting created": "Instanz wird erstellt",
 			"Instance is active": "Instanz ist aktiv",

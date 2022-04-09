@@ -4,16 +4,52 @@
 			"Instance has no active parent instance": "Instanz hat keine aktive übergeordnete Instanz",
 			"Disable instance": "Instanz deaktivieren",
 
+			"The following points of the configuration are incorrect":
+				"Die folgenden Punkte der Konfiguration sind fehlerhaft",
+			"Tracker-ID must be specified": "Tracker-ID muss angegeben sein",
+			"Pet-ID must be specified": "Haustier-ID muss angegeben sein",
+
 			"Tractive GPS Tracker": "Tractive GPS Tracker",
 			"Tracker-ID": "Tracker-ID",
 			"Pet-ID": "Haustier-ID",
 			"Model": "Modell",
 			"Basic configuration (don't change)": "Basis-Konfiguration (nicht ändern)",
-			"Update data every X minutes": "Aktualisieren Daten alle X Minuten",
+			"Update interval": "Aktualisierungsintervall",
 			"Minutes": "Minuten",
 
+			"save position to (logged) variable 'Position'": "Position in der (protokollierten) Variablen 'Position' speichern",
+			"save position": "Position speichern",
+
 			"Update data": "Aktualisiere Daten",
+
 			"Test area": "Test-Bereich",
+
+			"Expert area": "Experten-Bereich",
+			"Re-install variable-profiles": "Variablenprofile erneut einrichten",
+
+			"Information": "Information",
+
+			"Category": "Kategorie",
+			"Instance": "Instanz",
+			"Variable": "Variable",
+			"Script": "Skript",
+			"Event": "Ereignis",
+			"Medium": "Medium",
+			"Link": "Verknüpfung",
+			"PHP script": "PHP-Skript",
+			"Flow plan": "Ablaufplan",
+			"Triggered event": "Ausgelöstes Ereignis",
+			"Cyclic event": "Zyklisches Ereignis",
+			"Scheduled event": "Geplantes Ereignis",
+			"References": "Referenzen",
+			"by instance used objects": "durch die Instanz verwendete Objekte",
+			"Objects using the instance": "Objekte, die die Instanz verwenden",
+			"Referenced statusvariables": "referenzierte Statusvariablen",
+			"Ident": "Ident",
+			"Object": "Objekt",
+			"Area": "Bereich",
+			"Name": "Bezeichnung",
+			"Open object": "Objekt öffnen",
 
 			"NOT_REPORTING": "nicht verbunden",
 			"OPERATIONAL": "in Betrieb",

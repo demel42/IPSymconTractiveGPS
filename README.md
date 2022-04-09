@@ -118,7 +118,12 @@ werden vom Konfigurator beim Anlegen der Instanz gesetzt.
 | Modell                   | string   |              | von TractiveGpsConfig vorgegeben |
 | Haustier-ID              | string   |              | von TractiveGpsConfig vorgegeben |
 |                          |          |              | |
+| Position speichern       | boolean  | nein         | Positionsangaben in einer Variable speichern |
+|                          |          |              | |
 | Aktualisiere Daten ...   | integer  | 5            | Aktualisierungsintervall, Angabe in Minuten |
+
+in _Position_ wird die akuelle Positon gespeichert; es werden Longitude und Latitude sowie Altitude als json-encodeded String abgelegt. Wenn die Variable protokolliert wird, können damit längerfristig die Weg des Trackers dargestellt werden.
+Beispiel-Script siehe [docs/Position2GoogelMaps.php](docs/Position2GoogelMaps.php).
 
 #### Schaltflächen
 
@@ -136,7 +141,11 @@ TractiveGps.Switch
 TractiveGps.BatteryLevel
 
 * Float<br>
-TractiveGps.Altitude, TractiveGps.Course, TractiveGps.Location, TractiveGps.Speed, TractiveGps.Uncertainty
+TractiveGps.Altitude,
+TractiveGps.Course,
+TractiveGps.Location,
+TractiveGps.Speed,
+TractiveGps.Uncertainty
 
 ## 6. Anhang
 
@@ -151,6 +160,13 @@ GUIDs
   - `{94B20D14-415B-1E19-8EA4-839F948B6CBE}`: an TractiveGpsConfig, TractiveGpsDevice
 
 ## 7. Versions-Historie
+
+- 1.4 @ 09.04.2022 17:27
+  - Konfigurator zeigt nun auch Instanzen an, die nicht mehr zu den vorhandenen Geräten passen
+  - optionale Speicherung der Position-Angaben in einer Variablen (vereinfacht das Zeichnen von Karten)
+
+- 1.3 @ 16.02.2022 10:57
+  - Anpassungen an IPS 6.2 (Prüfung auf ungültige ID's)
 
 - 1.2 @ 14.07.2021 18:27
   - Schalter "Instanz ist deaktiviert" umbenannt in "Instanz deaktivieren"
