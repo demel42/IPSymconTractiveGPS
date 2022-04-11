@@ -161,9 +161,10 @@ GUIDs
 
 ## 7. Versions-Historie
 
-- 1.4 @ 09.04.2022 17:27
+- 1.4 @ 11.04.2022 12:22
   - Konfigurator zeigt nun auch Instanzen an, die nicht mehr zu den vorhandenen Geräten passen
   - optionale Speicherung der Position-Angaben in einer Variablen (vereinfacht das Zeichnen von Karten)
+  - Ausgabe der Instanz-Timer unter "Referenzen"
 
 - 1.3 @ 16.02.2022 10:57
   - Anpassungen an IPS 6.2 (Prüfung auf ungültige ID's)

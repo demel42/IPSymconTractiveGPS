@@ -20,6 +20,33 @@
 			"save position to (logged) variable 'Position'": "Position in der (protokollierten) Variablen 'Position' speichern",
 			"save position": "Position speichern",
 
+			"NOT_REPORTING": "nicht verbunden",
+			"OPERATIONAL": "in Betrieb",
+
+			"NORMAL": "normal",
+
+			"State": "Status",
+			"Last transmission": "Letzte Übertragung",
+			"Battery level": "Ladezustand",
+			"Temperature state": "Temperatur-Status",
+			"Last position message": "Letzte Positionsmeldung",
+			"Longitude": "Längengrad",
+			"Latitude": "Breіtengrad",
+			"Altitude": "Höhe",
+			"Speed": "Geschwindigkeit",
+			"Course": "Richtung",
+			"Used sensor": "Verwendeter Sensor",
+			"Position uncerntainty": "Positions-Ungenauigkeit",
+			"Last update": "Letzte Aktualisierung",
+			"Last change": "Letzte Änderung",
+
+			"Buzzer": "Signalton",
+			"Light": "Signallicht",
+			"Live tracking": "Live tracking",
+
+			"On": "Ein",
+			"Off": "Aus",
+
 			"Update data": "Aktualisiere Daten",
 
 			"Test area": "Test-Bereich",
@@ -50,33 +77,11 @@
 			"Area": "Bereich",
 			"Name": "Bezeichnung",
 			"Open object": "Objekt öffnen",
-
-			"NOT_REPORTING": "nicht verbunden",
-			"OPERATIONAL": "in Betrieb",
-
-			"NORMAL": "normal",
-
-			"State": "Status",
-			"Last transmission": "Letzte Übertragung",
-			"Battery level": "Ladezustand",
-			"Temperature state": "Temperatur-Status",
-			"Last position message": "Letzte Positionsmeldung",
-			"Longitude": "Längengrad",
-			"Latitude": "Breіtengrad",
-			"Altitude": "Höhe",
-			"Speed": "Geschwindigkeit",
-			"Course": "Richtung",
-			"Used sensor": "Verwendeter Sensor",
-			"Position uncerntainty": "Positions-Ungenauigkeit",
-			"Last update": "Letzte Aktualisierung",
-			"Last change": "Letzte Änderung",
-
-			"Buzzer": "Signalton",
-			"Light": "Signallicht",
-			"Live tracking": "Live tracking",
-
-			"On": "Ein",
-			"Off": "Aus",
+			"Timer": "Timer",
+			"Interval": "Intervall",
+			"Next run": "nächste Ausführung",
+			"Last run": "letzte Ausführung",
+			"Timer information": "Timer-Information",
 
 			"Instance getting created": "Instanz wird erstellt",
 			"Instance is active": "Instanz ist aktiv",

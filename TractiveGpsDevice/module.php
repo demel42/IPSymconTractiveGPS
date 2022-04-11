@@ -256,8 +256,7 @@ class TractiveGpsDevice extends IPSModule
             $sec = $min * 60;
         }
         $msec = $sec > 0 ? $sec * 1000 : 0;
-        $this->SetTimerInterval('UpdateData', $msec);
-        $this->SendDebug(__FUNCTION__, 'sec=' . $sec . ', msec=' . $msec, 0);
+        $this->MaintainTimer('UpdateData', $msec);
     }
 
     public function UpdateData()
