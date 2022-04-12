@@ -1,12 +1,18 @@
 {
-    "id": "{3A82CAAC-44E5-E310-4F90-AD375E2B5627}",
-    "name": "TractiveGpsConfig",
-    "type": 4,
-    "vendor": "Tractive",
-	"aliases": ["Tractive GPS Konfigurator"],
-    "parentRequirements": ["{94B20D14-415B-1E19-8EA4-839F948B6CBE}"],
-    "childRequirements": [],
-    "implemented": ["{91C54CDA-594C-1D6F-6BD8-57545408677F}"],
-    "prefix": "TractiveGps",
-    "url": "https://github.com/demel42/IPSymconTractiveGps/blob/main/README.md"
+	"id": "{3A82CAAC-44E5-E310-4F90-AD375E2B5627}",
+	"name": "TractiveGpsConfig",
+	"type": 4,
+	"vendor": "Tractive",
+	"aliases": [
+		"Tractive GPS Konfigurator"
+	],
+	"parentRequirements": [
+		"{94B20D14-415B-1E19-8EA4-839F948B6CBE}"
+	],
+	"childRequirements": [],
+	"implemented": [
+		"{91C54CDA-594C-1D6F-6BD8-57545408677F}"
+	],
+	"prefix": "TractiveGps",
+	"url": "https://github.com/demel42/IPSymconTractiveGps/blob/main/README.md"
 }

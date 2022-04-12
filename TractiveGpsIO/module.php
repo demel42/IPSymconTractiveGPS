@@ -57,12 +57,11 @@ class TractiveGpsIO extends IPSModule
             return;
         }
 
-        $user = $this->ReadPropertyString('user');
-        $password = $this->ReadPropertyString('password');
-        if ($user == '' || $password == '') {
-            $this->SetStatus(IS_INACTIVE);
+        if ($this->CheckConfiguration() != false) {
+            $this->SetStatus(self::$IS_INVALIDCONFIG);
             return;
         }
+
         $this->SetStatus(IS_ACTIVE);
     }
 
@@ -72,7 +71,7 @@ class TractiveGpsIO extends IPSModule
 
         $formElements[] = [
             'type'    => 'Label',
-            'caption' => 'Account from https://my.tractive.com'
+            'caption' => 'Tractive GPS I/O'
         ];
 
         @$s = $this->CheckConfiguration();
@@ -92,6 +91,10 @@ class TractiveGpsIO extends IPSModule
             'caption' => 'Disable instance'
         ];
 
+        $formElements[] = [
+            'type'    => 'Label',
+            'caption' => 'Account from https://my.tractive.com'
+        ];
         $formElements[] = [
             'type'    => 'ValidationTextBox',
             'name'    => 'user',

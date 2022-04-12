@@ -161,6 +161,9 @@ GUIDs
 
 ## 7. Versions-Historie
 
+- 1.4.1 @ 12.04.2022 18:00
+  - Fix zu 1.4: fehlende Prüfung auf ungültige Konfiguration
+
 - 1.4 @ 11.04.2022 12:22
   - Konfigurator zeigt nun auch Instanzen an, die nicht mehr zu den vorhandenen Geräten passen
   - optionale Speicherung der Position-Angaben in einer Variablen (vereinfacht das Zeichnen von Karten)

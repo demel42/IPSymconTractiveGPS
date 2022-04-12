@@ -50,6 +50,11 @@ class TractiveGpsConfig extends IPSModule
             }
         }
 
+        if ($this->CheckConfiguration() != false) {
+            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            return;
+        }
+
         $this->SetStatus(IS_ACTIVE);
     }
 
@@ -74,16 +79,16 @@ class TractiveGpsConfig extends IPSModule
 
     private function getConfiguratorValues()
     {
-        $config_list = [];
+        $entries = [];
 
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return $config_list;
+            return $entries;
         }
 
         if ($this->HasActiveParent() == false) {
             $this->SendDebug(__FUNCTION__, 'has no active parent', 0);
-            return $config_list;
+            return $entries;
         }
 
         $data = ['DataID' => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}', 'Function' => 'GetIndex'];
@@ -126,12 +131,12 @@ class TractiveGpsConfig extends IPSModule
                         ]
                     ]
                 ];
-                $config_list[] = $entry;
+                $entries[] = $entry;
             }
         }
         foreach ($instIDs as $instID) {
             $fnd = false;
-            foreach ($config_list as $entry) {
+            foreach ($entries as $entry) {
                 if ($entry['instanceID'] == $instID) {
                     $fnd = true;
                     break;
@@ -152,16 +157,21 @@ class TractiveGpsConfig extends IPSModule
                 'tracker_id'        => $tracker_id,
             ];
 
-            $config_list[] = $entry;
+            $entries[] = $entry;
             $this->SendDebug(__FUNCTION__, 'missing entry=' . print_r($entry, true), 0);
         }
 
-        return $config_list;
+        return $entries;
     }
 
     private function GetFormElements()
     {
         $formElements = [];
+
+        $formElements[] = [
+            'type'    => 'Label',
+            'caption' => 'Tractive GPS Configurator'
+        ];
 
         if ($this->HasActiveParent() == false) {
             $formElements[] = [
@@ -182,13 +192,9 @@ class TractiveGpsConfig extends IPSModule
         }
 
         $formElements[] = [
-            'type'    => 'Label',
-            'caption' => 'category for devices to be created'
-        ];
-        $formElements[] = [
             'type'    => 'SelectCategory',
             'name'    => 'ImportCategoryID',
-            'caption' => 'category'
+            'caption' => 'category for devices to be created'
         ];
 
         $entries = $this->getConfiguratorValues();
