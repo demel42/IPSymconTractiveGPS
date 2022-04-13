@@ -161,6 +161,9 @@ GUIDs
 
 ## 7. Versions-Historie
 
+- 1.4.2 @ 13.04.2022 14:57
+  - potentieller Namenskonflikt behoben (trait CommonStubs)
+
 - 1.4.1 @ 12.04.2022 18:00
   - Fix zu 1.4: fehlende Prüfung auf ungültige Konfiguration
 
