@@ -172,28 +172,28 @@ class TractiveGpsDevice extends IPSModule
             'caption' => 'Disable instance'
         ];
 
-        $items = [];
-        $items[] = [
-            'type'    => 'ValidationTextBox',
-            'name'    => 'tracker_id',
-            'caption' => 'Tracker-ID',
-            'enabled' => false
-        ];
-        $items[] = [
-            'type'    => 'ValidationTextBox',
-            'name'    => 'model_number',
-            'caption' => 'Model',
-            'enabled' => false
-        ];
-        $items[] = [
-            'type'    => 'ValidationTextBox',
-            'name'    => 'pet_id',
-            'caption' => 'Pet-ID',
-            'enabled' => false
-        ];
         $formElements[] = [
             'type'    => 'ExpansionPanel',
-            'items'   => $items,
+            'items'   => [
+                [
+                    'type'    => 'ValidationTextBox',
+                    'name'    => 'tracker_id',
+                    'caption' => 'Tracker-ID',
+                    'enabled' => false
+                ],
+                [
+                    'type'    => 'ValidationTextBox',
+                    'name'    => 'model_number',
+                    'caption' => 'Model',
+                    'enabled' => false
+                ],
+                [
+                    'type'    => 'ValidationTextBox',
+                    'name'    => 'pet_id',
+                    'caption' => 'Pet-ID',
+                    'enabled' => false
+                ],
+            ],
             'caption' => 'Basic configuration (don\'t change)',
         ];
 
@@ -201,6 +201,7 @@ class TractiveGpsDevice extends IPSModule
             'type'    => 'NumberSpinner',
             'name'    => 'update_interval',
             'suffix'  => 'Minutes',
+            'minimum' => 0,
             'caption' => 'Update interval',
         ];
 
