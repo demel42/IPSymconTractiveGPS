@@ -28,7 +28,7 @@ class TractiveGpsDevice extends IPSModule
 
         $this->InstallVarProfiles(false);
 
-        $this->RegisterTimer('UpdateData', 0, 'TractiveGps_UpdateData(' . $this->InstanceID . ');');
+        $this->RegisterTimer('UpdateData', 0, $this->GetModulePrefix() . '_UpdateData(' . $this->InstanceID . ');');
 
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
 
@@ -227,7 +227,7 @@ class TractiveGpsDevice extends IPSModule
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Update data',
-            'onClick' => 'TractiveGps_UpdateData($id);'
+            'onClick' => $this->GetModulePrefix() . '_UpdateData($id);'
         ];
 
         $formActions[] = [
@@ -238,7 +238,7 @@ class TractiveGpsDevice extends IPSModule
                 [
                     'type'    => 'Button',
                     'caption' => 'Re-install variable-profiles',
-                    'onClick' => 'TractiveGps_InstallVarProfiles($id, true);'
+                    'onClick' => $this->GetModulePrefix() . '_InstallVarProfiles($id, true);'
                 ],
             ],
         ];

@@ -141,12 +141,12 @@ class TractiveGpsIO extends IPSModule
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Test access',
-            'onClick' => 'TractiveGps_TestAccess($id);'
+            'onClick' => $this->GetModulePrefix() . '_TestAccess($id);'
         ];
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Clear Token',
-            'onClick' => 'TractiveGps_ClearToken($id);'
+            'onClick' => $this->GetModulePrefix() . '_ClearToken($id);'
         ];
 
         $formActions[] = $this->GetInformationFormAction();
