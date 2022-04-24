@@ -24,18 +24,19 @@ class TractiveGpsDevice extends IPSModule
 
         $this->RegisterPropertyInteger('update_interval', '5');
 
+        $this->RegisterAttributeString('UpdateInfo', '');
+
         $this->InstallVarProfiles(false);
 
         $this->RegisterTimer('UpdateData', 0, 'TractiveGps_UpdateData(' . $this->InstanceID . ');');
 
-        $this->ConnectParent('{0661D1B3-4375-1B37-7D59-1592111C8F8D}');
-
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
+
+        $this->ConnectParent('{0661D1B3-4375-1B37-7D59-1592111C8F8D}');
     }
 
     private function CheckConfiguration()
     {
-        $s = '';
         $r = [];
 
         $tracker_id = $this->ReadPropertyString('tracker_id');
@@ -50,21 +51,14 @@ class TractiveGpsDevice extends IPSModule
             $r[] = $this->Translate('Pet-ID must be specified');
         }
 
-        if ($r != []) {
-            $s = $this->Translate('The following points of the configuration are incorrect') . ':' . PHP_EOL;
-            foreach ($r as $p) {
-                $s .= '- ' . $p . PHP_EOL;
-            }
-        }
-
-        return $s;
+        return $r;
     }
 
-    public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
+    public function MessageSink($tstamp, $senderID, $message, $data)
     {
-        parent::MessageSink($TimeStamp, $SenderID, $Message, $Data);
+        parent::MessageSink($tstamp, $senderID, $message, $data);
 
-        if ($Message == IPS_KERNELMESSAGE && $Data[0] == KR_READY) {
+        if ($message == IPS_KERNELMESSAGE && $data[0] == KR_READY) {
             $this->UpdateData();
         }
     }
@@ -73,9 +67,36 @@ class TractiveGpsDevice extends IPSModule
     {
         parent::ApplyChanges();
 
-        $tracker_id = $this->ReadPropertyString('tracker_id');
-        $pet_id = $this->ReadPropertyString('pet_id');
-        $model_number = $this->ReadPropertyString('model_number');
+        $refs = $this->GetReferenceList();
+        foreach ($refs as $ref) {
+            $this->UnregisterReference($ref);
+        }
+        $propertyNames = [];
+        foreach ($propertyNames as $name) {
+            $oid = $this->ReadPropertyInteger($name);
+            if ($oid >= 10000) {
+                $this->RegisterReference($oid);
+            }
+        }
+
+        if ($this->CheckPrerequisites() != false) {
+            $this->MaintainTimer('UpdateData', 0);
+            $this->SetStatus(self::$IS_INVALIDPREREQUISITES);
+            return;
+        }
+
+        if ($this->CheckUpdate() != false) {
+            $this->MaintainTimer('UpdateData', 0);
+            $this->SetStatus(self::$IS_UPDATEUNCOMPLETED);
+            return;
+        }
+
+        if ($this->CheckConfiguration() != false) {
+            $this->MaintainTimer('UpdateData', 0);
+            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            return;
+        }
+
         $save_position = $this->ReadPropertyBoolean('save_position');
 
         $vpos = 1;
@@ -111,24 +132,15 @@ class TractiveGpsDevice extends IPSModule
         $this->MaintainVariable('LastChange', $this->Translate('Last change'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
         $this->MaintainVariable('Position', $this->Translate('Position'), VARIABLETYPE_STRING, '', $vpos++, $save_position);
 
+        $tracker_id = $this->ReadPropertyString('tracker_id');
+        $model_number = $this->ReadPropertyString('model_number');
         $summary = $model_number . ' (#' . $tracker_id . ')';
         $this->SetSummary($summary);
 
-        $refs = $this->GetReferenceList();
-        foreach ($refs as $ref) {
-            $this->UnregisterReference($ref);
-        }
-
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {
-            $this->SetUpdateInterval(0);
-            $this->SetStatus(IS_INACTIVE);
-            return;
-        }
-
-        if ($this->CheckConfiguration() != false) {
-            $this->SetUpdateInterval(0);
-            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            $this->MaintainTimer('UpdateData', 0);
+            $this->SetStatus(self::$IS_DEACTIVATED);
             return;
         }
 
@@ -141,29 +153,10 @@ class TractiveGpsDevice extends IPSModule
 
     private function GetFormElements()
     {
-        $formElements = [];
+        $formElements = $this->GetCommonFormElements('Tractive GPS Tracker');
 
-        $formElements[] = [
-            'type'    => 'Label',
-            'caption' => 'Tractive GPS Tracker'
-        ];
-
-        if ($this->HasActiveParent() == false) {
-            $formElements[] = [
-                'type'    => 'Label',
-                'caption' => 'Instance has no active parent instance',
-            ];
-        }
-
-        @$s = $this->CheckConfiguration();
-        if ($s != '') {
-            $formElements[] = [
-                'type'    => 'Label',
-                'caption' => $s,
-            ];
-            $formElements[] = [
-                'type'    => 'Label',
-            ];
+        if ($this->GetStatus() == self::$IS_UPDATEUNCOMPLETED) {
+            return $formElements;
         }
 
         $formElements[] = [
@@ -222,6 +215,15 @@ class TractiveGpsDevice extends IPSModule
     {
         $formActions = [];
 
+        if ($this->GetStatus() == self::$IS_UPDATEUNCOMPLETED) {
+            $formActions[] = $this->GetCompleteUpdateFormAction();
+
+            $formActions[] = $this->GetInformationFormAction();
+            $formActions[] = $this->GetReferencesFormAction();
+
+            return $formActions;
+        }
+
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Update data',
@@ -241,8 +243,8 @@ class TractiveGpsDevice extends IPSModule
             ],
         ];
 
-        $formActions[] = $this->GetInformationForm();
-        $formActions[] = $this->GetReferencesForm();
+        $formActions[] = $this->GetInformationFormAction();
+        $formActions[] = $this->GetReferencesFormAction();
 
         return $formActions;
     }

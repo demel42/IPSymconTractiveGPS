@@ -16,22 +16,9 @@ class TractiveGpsConfig extends IPSModule
 
         $this->RegisterPropertyInteger('ImportCategoryID', 0);
 
+        $this->RegisterAttributeString('UpdateInfo', '');
+
         $this->ConnectParent('{0661D1B3-4375-1B37-7D59-1592111C8F8D}');
-    }
-
-    private function CheckConfiguration()
-    {
-        $s = '';
-        $r = [];
-
-        if ($r != []) {
-            $s = $this->Translate('The following points of the configuration are incorrect') . ':' . PHP_EOL;
-            foreach ($r as $p) {
-                $s .= '- ' . $p . PHP_EOL;
-            }
-        }
-
-        return $s;
     }
 
     public function ApplyChanges()
@@ -50,9 +37,26 @@ class TractiveGpsConfig extends IPSModule
             }
         }
 
+        if ($this->CheckPrerequisites() != false) {
+            $this->SetStatus(self::$IS_INVALIDPREREQUISITES);
+            return;
+        }
+
+        if ($this->CheckUpdate() != false) {
+            $this->SetStatus(self::$IS_UPDATEUNCOMPLETED);
+            return;
+        }
+
         if ($this->CheckConfiguration() != false) {
             $this->SetStatus(self::$IS_INVALIDCONFIG);
             return;
+        }
+
+        foreach ($propertyNames as $name) {
+            $oid = $this->ReadPropertyInteger($name);
+            if ($oid >= 10000) {
+                $this->RegisterReference($oid);
+            }
         }
 
         $this->SetStatus(IS_ACTIVE);
@@ -166,29 +170,10 @@ class TractiveGpsConfig extends IPSModule
 
     private function GetFormElements()
     {
-        $formElements = [];
+        $formElements = $this->GetCommonFormElements('Tractive GPS Configurator');
 
-        $formElements[] = [
-            'type'    => 'Label',
-            'caption' => 'Tractive GPS Configurator'
-        ];
-
-        if ($this->HasActiveParent() == false) {
-            $formElements[] = [
-                'type'    => 'Label',
-                'caption' => 'Instance has no active parent instance',
-            ];
-        }
-
-        @$s = $this->CheckConfiguration();
-        if ($s != '') {
-            $formElements[] = [
-                'type'    => 'Label',
-                'caption' => $s,
-            ];
-            $formElements[] = [
-                'type'    => 'Label',
-            ];
+        if ($this->GetStatus() == self::$IS_UPDATEUNCOMPLETED) {
+            return $formElements;
         }
 
         $formElements[] = [
@@ -238,8 +223,17 @@ class TractiveGpsConfig extends IPSModule
     {
         $formActions = [];
 
-        $formActions[] = $this->GetInformationForm();
-        $formActions[] = $this->GetReferencesForm();
+        if ($this->GetStatus() == self::$IS_UPDATEUNCOMPLETED) {
+            $formActions[] = $this->GetCompleteUpdateFormAction();
+
+            $formActions[] = $this->GetInformationFormAction();
+            $formActions[] = $this->GetReferencesFormAction();
+
+            return $formActions;
+        }
+
+        $formActions[] = $this->GetInformationFormAction();
+        $formActions[] = $this->GetReferencesFormAction();
 
         return $formActions;
     }

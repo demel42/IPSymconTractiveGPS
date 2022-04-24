@@ -18,11 +18,12 @@ class TractiveGpsIO extends IPSModule
 
         $this->RegisterPropertyString('user', '');
         $this->RegisterPropertyString('password', '');
+
+        $this->RegisterAttributeString('UpdateInfo', '');
     }
 
     private function CheckConfiguration()
     {
-        $s = '';
         $r = [];
 
         $user = $this->ReadPropertyString('user');
@@ -37,28 +38,43 @@ class TractiveGpsIO extends IPSModule
             $r[] = $this->Translate('Password must be specified');
         }
 
-        if ($r != []) {
-            $s = $this->Translate('The following points of the configuration are incorrect') . ':' . PHP_EOL;
-            foreach ($r as $p) {
-                $s .= '- ' . $p . PHP_EOL;
-            }
-        }
-
-        return $s;
+        return $r;
     }
 
     public function ApplyChanges()
     {
         parent::ApplyChanges();
 
-        $module_disable = $this->ReadPropertyBoolean('module_disable');
-        if ($module_disable) {
-            $this->SetStatus(IS_INACTIVE);
+        $refs = $this->GetReferenceList();
+        foreach ($refs as $ref) {
+            $this->UnregisterReference($ref);
+        }
+        $propertyNames = [];
+        foreach ($propertyNames as $name) {
+            $oid = $this->ReadPropertyInteger($name);
+            if ($oid >= 10000) {
+                $this->RegisterReference($oid);
+            }
+        }
+
+        if ($this->CheckPrerequisites() != false) {
+            $this->SetStatus(self::$IS_INVALIDPREREQUISITES);
+            return;
+        }
+
+        if ($this->CheckUpdate() != false) {
+            $this->SetStatus(self::$IS_UPDATEUNCOMPLETED);
             return;
         }
 
         if ($this->CheckConfiguration() != false) {
             $this->SetStatus(self::$IS_INVALIDCONFIG);
+            return;
+        }
+
+        $module_disable = $this->ReadPropertyBoolean('module_disable');
+        if ($module_disable) {
+            $this->SetStatus(self::$IS_DEACTIVATED);
             return;
         }
 
@@ -113,6 +129,15 @@ class TractiveGpsIO extends IPSModule
     {
         $formActions = [];
 
+        if ($this->GetStatus() == self::$IS_UPDATEUNCOMPLETED) {
+            $formActions[] = $this->GetCompleteUpdateFormAction();
+
+            $formActions[] = $this->GetInformationFormAction();
+            $formActions[] = $this->GetReferencesFormAction();
+
+            return $formActions;
+        }
+
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Test access',
@@ -124,8 +149,8 @@ class TractiveGpsIO extends IPSModule
             'onClick' => 'TractiveGps_ClearToken($id);'
         ];
 
-        $formActions[] = $this->GetInformationForm();
-        $formActions[] = $this->GetReferencesForm();
+        $formActions[] = $this->GetInformationFormAction();
+        $formActions[] = $this->GetReferencesFormAction();
 
         return $formActions;
     }
