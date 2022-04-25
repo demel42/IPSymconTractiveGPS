@@ -161,7 +161,7 @@ GUIDs
 
 ## 7. Versions-Historie
 
-- 1.5 @ 24.04.2022 11:10
+- 1.5 @ 25.04.2022 16:39
   - Implememtierung einer Update-Logik
   - Übersetzung vervollständigt
   - Aktualisierung von submodule CommonStubs

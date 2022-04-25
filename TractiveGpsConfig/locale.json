@@ -3,17 +3,6 @@
 		"de": {
 			"Tractive GPS Configurator": "Tractive GPS Konfigurator",
 
-			"category for devices to be created": "Kategorie für anzulegende Geräte",
-
-			"GPS Trackers": "GPS Tracker",
-			"Model": "Modell",
-			"Pet": "Haustier",
-			"Id": "Id",
-
-			"__variableprofile。_": "TractiveGps.Switch",
-			"On": "Ein",
-			"Off": "Aus",
-
 			"Instance has no active parent instance": "Instanz hat keine aktive übergeordnete Instanz",
 
 			"The following points of the configuration are incorrect": "Die folgenden Punkte der Konfiguration sind fehlerhaft",
@@ -30,6 +19,20 @@
 			"Complete update": "Update abschliessen",
 			"Unable to complete the update": "Das Update kann nicht abgeschlossen werden",
 			"please contact the author": "Bitte kontaktieren Sie den Autor",
+
+			"Status: Symcon Connect is OK!": "Status: Symcon Connect ist OK!",
+			"Error: Symcon Connect is not active!": "Fehler: Symcon Connect ist nicht aktiv!",
+
+			"category for devices to be created": "Kategorie für anzulegende Geräte",
+
+			"GPS Trackers": "GPS Tracker",
+			"Model": "Modell",
+			"Pet": "Haustier",
+			"Id": "Id",
+
+			"__variableprofile。_": "TractiveGps.Switch",
+			"On": "Ein",
+			"Off": "Aus",
 
 			"Test area": "Test-Bereich",
 

@@ -22,6 +22,9 @@
 			"Unable to complete the update": "Das Update kann nicht abgeschlossen werden",
 			"please contact the author": "Bitte kontaktieren Sie den Autor",
 
+			"Status: Symcon Connect is OK!": "Status: Symcon Connect ist OK!",
+			"Error: Symcon Connect is not active!": "Fehler: Symcon Connect ist nicht aktiv!",
+
 			"Disable instance": "Instanz deaktivieren",
 
 			"Tracker-ID": "Tracker-ID",
