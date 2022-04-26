@@ -64,7 +64,7 @@ class TractiveGpsIO extends IPSModule
 
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {
-            $this->SetStatus(self::$IS_DEACTIVATED);
+            $this->SetStatus(IS_INACTIVE);
             return;
         }
 
@@ -541,17 +541,17 @@ class TractiveGpsIO extends IPSModule
     {
         if ($this->GetStatus() == IS_INACTIVE) {
             $this->SendDebug(__FUNCTION__, 'instance is inactive, skip', 0);
-            echo $this->translate('Instance is inactive') . PHP_EOL;
+            echo $this->Translate('Instance is inactive') . PHP_EOL;
             return;
         }
 
         $txt = '';
         $r = $this->GetTrackers($data);
         if ($r == false) {
-            $txt .= $this->translate('invalid account-data') . PHP_EOL;
+            $txt .= $this->Translate('invalid account-data') . PHP_EOL;
             $txt .= PHP_EOL;
         } else {
-            $txt = $this->translate('valid account-data') . PHP_EOL;
+            $txt = $this->Translate('valid account-data') . PHP_EOL;
             $trackers = json_decode($data, true);
             $n_trackers = count($trackers);
             $txt .= $n_trackers . ' ' . $this->Translate('registered devices found');
