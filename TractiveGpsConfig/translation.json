@@ -1,0 +1,17 @@
+{
+	"translations": {
+		"de": {
+			"Tractive GPS Configurator": "Tractive GPS Konfigurator",
+
+			"__elements__": "",
+			"category for devices to be created": "Kategorie für anzulegende Geräte",
+
+			"GPS Trackers": "GPS Tracker",
+			"Model": "Modell",
+			"Pet": "Haustier",
+			"Id": "Id",
+
+			"__end__": ""
+		}
+	}
+}

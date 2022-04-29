@@ -1,0 +1,29 @@
+{
+    "translations": {
+        "de": {
+			"Tractive GPS I/O": "Tractive GPS I/O",
+
+			"__function__": "CheckConfiguration",
+			"Username must be specified": "Benutzer muss angegeben sein",
+			"Password must be specified": "Passwort muss angegeben sein",
+
+			"__elements__": "",
+			"Disable instance": "Instanz deaktivieren",
+
+			"Account from https://my.tractive.com": "Zugangsdaten von https://my.tractive.com",
+			"Username": "Benutzerkennung",
+			"Password": "Passwort",
+
+			"__actions__": "",
+			"Test access": "Zugang prüfen",
+			"Clear Token": "Token löschen",
+
+			"__function__": "TestAccess",
+			"invalid account-data": "Ungültige Zugangsdaten",
+			"valid account-data": "Gültige Zugangsdaten",
+			"registered devices found": "registrierte Geräte gefunden",
+
+			"__end__": ""
+        }
+    }
+}

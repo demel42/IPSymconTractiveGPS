@@ -1,0 +1,56 @@
+{
+    "translations": {
+        "de": {
+			"Tractive GPS Tracker": "Tractive GPS Tracker",
+
+			"__function__": "CheckConfiguration",
+			"Tracker-ID must be specified": "Tracker-ID muss angegeben sein",
+			"Pet-ID must be specified": "Haustier-ID muss angegeben sein",
+
+			"__elements__": "",
+			"Disable instance": "Instanz deaktivieren",
+
+			"Tracker-ID": "Tracker-ID",
+			"Pet-ID": "Haustier-ID",
+			"Model": "Modell",
+			"Basic configuration (don't change)": "Basis-Konfiguration (nicht ändern)",
+			"Update interval": "Aktualisierungsintervall",
+			"Minutes": "Minuten",
+
+			"save position to (logged) variable 'Position'": "Position in der (protokollierten) Variablen 'Position' speichern",
+			"save position": "Position speichern",
+
+			"__variables__": "",
+			"State": "Status",
+			"Last transmission": "Letzte Übertragung",
+			"Battery level": "Ladezustand",
+			"Temperature state": "Temperatur-Status",
+			"Last position message": "Letzte Positionsmeldung",
+			"Longitude": "Längengrad",
+			"Latitude": "Breіtengrad",
+			"Altitude": "Höhe",
+			"Speed": "Geschwindigkeit",
+			"Course": "Richtung",
+			"Used sensor": "Verwendeter Sensor",
+			"Position uncerntainty": "Positions-Ungenauigkeit",
+			"Last update": "Letzte Aktualisierung",
+			"Last change": "Letzte Änderung",
+
+			"Buzzer": "Signalton",
+			"Light": "Signallicht",
+			"Live tracking": "Live tracking",
+
+			"__variable__": "State",
+			"NOT_REPORTING": "nicht verbunden",
+			"OPERATIONAL": "in Betrieb",
+
+			"__variable__": "TemperatureState",
+			"NORMAL": "normal",
+
+			"__actions__": "",
+			"Update data": "Aktualisiere Daten",
+
+			"__end__": ""
+        }
+    }
+}
