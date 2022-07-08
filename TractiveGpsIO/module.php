@@ -57,47 +57,35 @@ class TractiveGpsIO extends IPSModule
         $this->MaintainReferences();
 
         if ($this->CheckPrerequisites() != false) {
-            $this->SetStatus(self::$IS_INVALIDPREREQUISITES);
+            $this->MaintainStatus(self::$IS_INVALIDPREREQUISITES);
             return;
         }
 
         if ($this->CheckUpdate() != false) {
-            $this->SetStatus(self::$IS_UPDATEUNCOMPLETED);
+            $this->MaintainStatus(self::$IS_UPDATEUNCOMPLETED);
             return;
         }
 
         if ($this->CheckConfiguration() != false) {
-            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            $this->MaintainStatus(self::$IS_INVALIDCONFIG);
             return;
         }
 
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {
-            $this->SetStatus(IS_INACTIVE);
+            $this->MaintainStatus(IS_INACTIVE);
             return;
         }
 
-        $this->SetStatus(IS_ACTIVE);
+        $this->MaintainStatus(IS_ACTIVE);
     }
 
     private function GetFormElements()
     {
-        $formElements = [];
+        $formElements = $this->GetCommonFormElements('Tractive GPS I/O');
 
-        $formElements[] = [
-            'type'    => 'Label',
-            'caption' => 'Tractive GPS I/O'
-        ];
-
-        @$s = $this->CheckConfiguration();
-        if ($s != '') {
-            $formElements[] = [
-                'type'    => 'Label',
-                'caption' => $s,
-            ];
-            $formElements[] = [
-                'type'    => 'Label',
-            ];
+        if ($this->GetStatus() == self::$IS_UPDATEUNCOMPLETED) {
+            return $formElements;
         }
 
         $formElements[] = [
@@ -116,7 +104,7 @@ class TractiveGpsIO extends IPSModule
             'caption' => 'Username'
         ];
         $formElements[] = [
-            'type'    => 'ValidationTextBox',
+            'type'    => 'PasswordTextBox',
             'name'    => 'password',
             'caption' => 'Password'
         ];
@@ -140,12 +128,20 @@ class TractiveGpsIO extends IPSModule
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Test access',
-            'onClick' => $this->GetModulePrefix() . '_TestAccess($id);'
+            'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "TestAccess", "");',
         ];
+
         $formActions[] = [
-            'type'    => 'Button',
-            'caption' => 'Clear Token',
-            'onClick' => $this->GetModulePrefix() . '_ClearToken($id);'
+            'type'      => 'ExpansionPanel',
+            'caption'   => 'Expert area',
+            'expanded ' => false,
+            'items'     => [
+                [
+                    'type'    => 'Button',
+                    'caption' => 'Clear Token',
+                    'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ClearToken", "");',
+                ],
+            ],
         ];
 
         $formActions[] = $this->GetInformationFormAction();
@@ -249,7 +245,7 @@ class TractiveGpsIO extends IPSModule
             if ($statuscode) {
                 $this->LogMessage('statuscode=' . $statuscode . ', err=' . $err, KL_WARNING);
                 $this->SendDebug(__FUNCTION__, $err, 0);
-                $this->SetStatus($statuscode);
+                $this->MaintainStatus($statuscode);
                 return false;
             }
 
@@ -267,7 +263,7 @@ class TractiveGpsIO extends IPSModule
             ];
             $token = json_encode($jtoken);
             $this->SetBuffer('AccessToken', $token);
-            $this->SetStatus(IS_ACTIVE);
+            $this->MaintainStatus(IS_ACTIVE);
         }
 
         return $token;
@@ -538,19 +534,19 @@ class TractiveGpsIO extends IPSModule
         $mode = $postdata == false ? 'GET' : 'POST';
         $statuscode = $this->do_HttpRequest($func, $header, $postdata, $mode, $data);
         if ($statuscode != 0) {
-            $this->SetStatus($statuscode);
+            $this->MaintainStatus($statuscode);
             return false;
         }
 
-        $this->SetStatus(IS_ACTIVE);
+        $this->MaintainStatus(IS_ACTIVE);
         return $statuscode ? false : true;
     }
 
-    public function TestAccess()
+    private function TestAccess()
     {
         if ($this->GetStatus() == IS_INACTIVE) {
-            $this->SendDebug(__FUNCTION__, 'instance is inactive, skip', 0);
-            echo $this->Translate('Instance is inactive') . PHP_EOL;
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            $this->PopupMessage($this->GetStatusText());
             return;
         }
 
@@ -565,18 +561,39 @@ class TractiveGpsIO extends IPSModule
             $n_trackers = count($trackers);
             $txt .= $n_trackers . ' ' . $this->Translate('registered devices found');
         }
-        echo $txt;
+        $this->SendDebug(__FUNCTION__, 'txt=' . $txt, 0);
+        $this->PopupMessage($txt);
     }
 
-    public function ClearToken()
+    private function ClearToken()
     {
         $access_token = $this->GetAccessToken();
         $this->SendDebug(__FUNCTION__, 'clear access_token=' . $access_token, 0);
         $this->SetBuffer('AccessToken', '');
     }
 
+    private function LocalRequestAction($ident, $value)
+    {
+        $r = true;
+        switch ($ident) {
+            case 'TestAccess':
+                $this->TestAccess();
+                break;
+            case 'ClearToken':
+                $this->ClearToken();
+                break;
+            default:
+                $r = false;
+                break;
+        }
+        return $r;
+    }
+
     public function RequestAction($ident, $value)
     {
+        if ($this->LocalRequestAction($ident, $value)) {
+            return;
+        }
         if ($this->CommonRequestAction($ident, $value)) {
             return;
         }

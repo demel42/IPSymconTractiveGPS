@@ -37,11 +37,11 @@ class TractiveGpsDevice extends IPSModule
 
         $this->InstallVarProfiles(false);
 
-        $this->RegisterTimer('UpdateData', 0, $this->GetModulePrefix() . '_UpdateData(' . $this->InstanceID . ');');
-
-        $this->RegisterMessage(0, IPS_KERNELMESSAGE);
+        $this->RegisterTimer('UpdateData', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateData", "");');
 
         $this->ConnectParent('{0661D1B3-4375-1B37-7D59-1592111C8F8D}');
+
+        $this->RegisterMessage(0, IPS_KERNELMESSAGE);
     }
 
     private function CheckModuleConfiguration()
@@ -80,19 +80,19 @@ class TractiveGpsDevice extends IPSModule
 
         if ($this->CheckPrerequisites() != false) {
             $this->MaintainTimer('UpdateData', 0);
-            $this->SetStatus(self::$IS_INVALIDPREREQUISITES);
+            $this->MaintainStatus(self::$IS_INVALIDPREREQUISITES);
             return;
         }
 
         if ($this->CheckUpdate() != false) {
             $this->MaintainTimer('UpdateData', 0);
-            $this->SetStatus(self::$IS_UPDATEUNCOMPLETED);
+            $this->MaintainStatus(self::$IS_UPDATEUNCOMPLETED);
             return;
         }
 
         if ($this->CheckConfiguration() != false) {
             $this->MaintainTimer('UpdateData', 0);
-            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            $this->MaintainStatus(self::$IS_INVALIDCONFIG);
             return;
         }
 
@@ -139,11 +139,11 @@ class TractiveGpsDevice extends IPSModule
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {
             $this->MaintainTimer('UpdateData', 0);
-            $this->SetStatus(IS_INACTIVE);
+            $this->MaintainStatus(IS_INACTIVE);
             return;
         }
 
-        $this->SetStatus(IS_ACTIVE);
+        $this->MaintainStatus(IS_ACTIVE);
 
         if (IPS_GetKernelRunlevel() == KR_READY) {
             $this->SetUpdateInterval(1);
@@ -234,11 +234,7 @@ class TractiveGpsDevice extends IPSModule
             'caption'   => 'Expert area',
             'expanded ' => false,
             'items'     => [
-                [
-                    'type'    => 'Button',
-                    'caption' => 'Re-install variable-profiles',
-                    'onClick' => $this->GetModulePrefix() . '_InstallVarProfiles($id, true);'
-                ],
+                $this->GetInstallVarProfilesFormItem(),
             ],
         ];
 
@@ -248,7 +244,7 @@ class TractiveGpsDevice extends IPSModule
         return $formActions;
     }
 
-    protected function SetUpdateInterval($sec = null)
+    private function SetUpdateInterval($sec = null)
     {
         if ($sec == null) {
             $sec = $this->CalcNextInterval();
@@ -261,7 +257,7 @@ class TractiveGpsDevice extends IPSModule
         $this->MaintainTimer('UpdateData', $msec);
     }
 
-    public function UpdateData()
+    private function UpdateData()
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             if ($this->GetStatus() == self::$IS_NOLOGIN) {
@@ -293,7 +289,7 @@ class TractiveGpsDevice extends IPSModule
         $this->decodeUpdateData($receiveData);
 
         $this->SetUpdateInterval();
-        $this->SetStatus(IS_ACTIVE);
+        $this->MaintainStatus(IS_ACTIVE);
     }
 
     private function decodeUpdateData($data)
@@ -429,8 +425,8 @@ class TractiveGpsDevice extends IPSModule
 
     private function SendTrackerCommand($func, $payload)
     {
-        if ($this->GetStatus() == IS_INACTIVE) {
-            $this->SendDebug(__FUNCTION__, 'instance is inactive, skip', 0);
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
             return false;
         }
 
@@ -519,14 +515,31 @@ class TractiveGpsDevice extends IPSModule
         return $this->SendTrackerCommand(__FUNCTION__, $payload);
     }
 
+    private function LocalRequestAction($ident, $value)
+    {
+        $r = true;
+        switch ($ident) {
+            case 'UpdateData':
+                $this->UpdateData();
+                break;
+            default:
+                $r = false;
+                break;
+        }
+        return $r;
+    }
+
     public function RequestAction($ident, $value)
     {
+        if ($this->LocalRequestAction($ident, $value)) {
+            return;
+        }
         if ($this->CommonRequestAction($ident, $value)) {
             return;
         }
 
         if ($this->GetStatus() == IS_INACTIVE) {
-            $this->SendDebug(__FUNCTION__, 'instance is inactive, skip', 0);
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
             return;
         }
 
