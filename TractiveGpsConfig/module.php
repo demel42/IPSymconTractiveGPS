@@ -95,6 +95,10 @@ class TractiveGpsConfig extends IPSModule
                     }
                 }
 
+                if ($instanceID && IPS_GetInstance($instanceID)['ConnectionID'] != IPS_GetInstance($this->InstanceID)['ConnectionID']) {
+                    continue;
+                }
+
                 $entry = [
                     'instanceID'   => $instanceID,
                     'name'         => $pet_name,
@@ -112,6 +116,7 @@ class TractiveGpsConfig extends IPSModule
                     ]
                 ];
                 $entries[] = $entry;
+                $this->SendDebug(__FUNCTION__, 'entry=' . print_r($entry, true), 0);
             }
         }
         foreach ($instIDs as $instID) {
@@ -123,6 +128,10 @@ class TractiveGpsConfig extends IPSModule
                 }
             }
             if ($fnd) {
+                continue;
+            }
+
+            if (IPS_GetInstance($instID)['ConnectionID'] != IPS_GetInstance($this->InstanceID)['ConnectionID']) {
                 continue;
             }
 
