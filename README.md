@@ -162,7 +162,7 @@ GUIDs
 ## 7. Versions-Historie
 
 - 1.7 @ 19.10.2022 09:26
-  - Fix: MessageSink() angepasst, um Warnungen aufgrund zu langer Laufzeit von KR_READY zu vermeinden
+  - Fix: MessageSink() angepasst, um Warnungen aufgrund zu langer Laufzeit von KR_READY zu vermeiden
   - update submodule CommonStubs
 
 - 1.6.3 @ 12.10.2022 14:44
