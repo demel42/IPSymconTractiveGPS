@@ -161,6 +161,10 @@ GUIDs
 
 ## 7. Versions-Historie
 
+- 1.7 @ 19.10.2022 09:26
+  - Fix: MessageSink() angepasst, um Warnungen aufgrund zu langer Laufzeit von KR_READY zu vermeinden
+  - update submodule CommonStubs
+
 - 1.6.3 @ 12.10.2022 14:44
   - Konfigurator betrachtet nun nur noch Geräte, die entweder noch nicht angelegt wurden oder mit dem gleichen I/O verbunden sind
   - update submodule CommonStubs

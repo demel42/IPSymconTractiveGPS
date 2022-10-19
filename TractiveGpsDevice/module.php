@@ -68,7 +68,7 @@ class TractiveGpsDevice extends IPSModule
         parent::MessageSink($tstamp, $senderID, $message, $data);
 
         if ($message == IPS_KERNELMESSAGE && $data[0] == KR_READY) {
-            $this->UpdateData();
+            $this->SetUpdateInterval(1);
         }
     }
 
