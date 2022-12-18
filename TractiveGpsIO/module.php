@@ -10,13 +10,17 @@ class TractiveGpsIO extends IPSModule
     use TractiveGps\StubsCommonLib;
     use TractiveGpsLocalLib;
 
+    private static $semaphoreTM = 5 * 1000;
+
     private $ModuleDir;
+    private $SemaphoreID;
 
     public function __construct(string $InstanceID)
     {
         parent::__construct($InstanceID);
 
         $this->ModuleDir = __DIR__;
+        $this->SemaphoreID = __CLASS__ . '_' . $InstanceID;
     }
 
     public function Create()
@@ -29,6 +33,7 @@ class TractiveGpsIO extends IPSModule
         $this->RegisterPropertyString('password', '');
 
         $this->RegisterAttributeString('UpdateInfo', '');
+        $this->RegisterAttributeString('ApiCallStats', json_encode([]));
     }
 
     private function CheckModuleConfiguration()
@@ -138,9 +143,10 @@ class TractiveGpsIO extends IPSModule
             'items'     => [
                 [
                     'type'    => 'Button',
-                    'caption' => 'Clear Token',
+                    'caption' => 'Clear token',
                     'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ClearToken", "");',
                 ],
+                $this->GetApiCallStatsFormItem(),
             ],
         ];
 
@@ -159,6 +165,10 @@ class TractiveGpsIO extends IPSModule
 
         $jdata = json_decode($data, true);
         $this->SendDebug(__FUNCTION__, 'data=' . print_r($jdata, true), 0);
+
+        $callerID = $jdata['CallerID'];
+        $this->SendDebug(__FUNCTION__, 'caller=' . $callerID . '(' . IPS_GetName($callerID) . ')', 0);
+        $_IPS['CallerID'] = $callerID;
 
         $ret = '';
         if (isset($jdata['Function'])) {
@@ -210,6 +220,11 @@ class TractiveGpsIO extends IPSModule
         $user = $this->ReadPropertyString('user');
         $password = $this->ReadPropertyString('password');
 
+        if (IPS_SemaphoreEnter($this->SemaphoreID, self::$semaphoreTM) == false) {
+            $this->SendDebug(__FUNCTION__, 'unable to lock sempahore ' . $this->SemaphoreID, 0);
+            return false;
+        }
+
         $token = $this->GetBuffer('AccessToken');
         $jtoken = json_decode($token, true);
         $access_token = isset($jtoken['access_token']) ? $jtoken['access_token'] : '';
@@ -245,6 +260,7 @@ class TractiveGpsIO extends IPSModule
             if ($statuscode) {
                 $this->LogMessage('statuscode=' . $statuscode . ', err=' . $err, KL_WARNING);
                 $this->SendDebug(__FUNCTION__, $err, 0);
+                IPS_SemaphoreLeave($this->SemaphoreID);
                 $this->MaintainStatus($statuscode);
                 return false;
             }
@@ -266,6 +282,7 @@ class TractiveGpsIO extends IPSModule
             $this->MaintainStatus(IS_ACTIVE);
         }
 
+        IPS_SemaphoreLeave($this->SemaphoreID);
         return $token;
     }
 
@@ -341,6 +358,8 @@ class TractiveGpsIO extends IPSModule
             $this->LogMessage('url=' . $url . ' => statuscode=' . $statuscode . ', err=' . $err, KL_WARNING);
             $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
         }
+
+        $this->ApiCallsCollect($url, $err, $statuscode);
 
         return $statuscode;
     }
@@ -532,13 +551,17 @@ class TractiveGpsIO extends IPSModule
         ];
 
         $mode = $postdata == false ? 'GET' : 'POST';
-        $statuscode = $this->do_HttpRequest($func, $header, $postdata, $mode, $data);
-        if ($statuscode != 0) {
-            $this->MaintainStatus($statuscode);
+
+        if (IPS_SemaphoreEnter($this->SemaphoreID, self::$semaphoreTM) == false) {
+            $this->SendDebug(__FUNCTION__, 'unable to lock sempahore ' . $this->SemaphoreID, 0);
             return false;
         }
 
-        $this->MaintainStatus(IS_ACTIVE);
+        $statuscode = $this->do_HttpRequest($func, $header, $postdata, $mode, $data);
+
+        IPS_SemaphoreLeave($this->SemaphoreID);
+
+        $this->MaintainStatus($statuscode ? $statuscode : IS_ACTIVE);
         return $statuscode ? false : true;
     }
 
@@ -551,15 +574,15 @@ class TractiveGpsIO extends IPSModule
         }
 
         $txt = '';
-        $r = $this->GetTrackers($data);
+        $r = $this->GetVehicles($data);
         if ($r == false) {
             $txt .= $this->Translate('invalid account-data') . PHP_EOL;
             $txt .= PHP_EOL;
         } else {
             $txt = $this->Translate('valid account-data') . PHP_EOL;
-            $trackers = json_decode($data, true);
-            $n_trackers = count($trackers);
-            $txt .= $n_trackers . ' ' . $this->Translate('registered devices found');
+            $vehicles = json_decode($data, true);
+            $n_vehicles = count($vehicles);
+            $txt .= $n_vehicles . ' ' . $this->Translate('registered vehicles found');
         }
         $this->SendDebug(__FUNCTION__, 'txt=' . $txt, 0);
         $this->PopupMessage($txt);
@@ -567,9 +590,16 @@ class TractiveGpsIO extends IPSModule
 
     private function ClearToken()
     {
+        if (IPS_SemaphoreEnter($this->SemaphoreID, self::$semaphoreTM) == false) {
+            $this->SendDebug(__FUNCTION__, 'unable to lock sempahore ' . $this->SemaphoreID, 0);
+            return false;
+        }
+
         $access_token = $this->GetAccessToken();
         $this->SendDebug(__FUNCTION__, 'clear access_token=' . $access_token, 0);
         $this->SetBuffer('AccessToken', '');
+
+        IPS_SemaphoreLeave($this->SemaphoreID);
     }
 
     private function LocalRequestAction($ident, $value)
@@ -602,5 +632,27 @@ class TractiveGpsIO extends IPSModule
                 $this->SendDebug(__FUNCTION__, 'invalid ident ' . $ident, 0);
                 break;
         }
+    }
+
+	private function GetVehicles()
+    {
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
+
+        $result = false;
+
+        $params = [
+            'apptimezone'   => strval(round(intval(date('Z')) / 60)), // TZ-Differenz in Minuten
+            'appDateTime'   => date('U') . date('v'), // Millisekunden
+            'tireGuardMode' => 'ENABLED',
+        ];
+
+		$url = self::$vehicles_endpoint;
+		$data = $this->CallAPI($url, '', $params, '');
+        return $data;
     }
 }

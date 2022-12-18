@@ -71,12 +71,17 @@ class TractiveGpsConfig extends IPSModule
 
         $catID = $this->ReadPropertyInteger('ImportCategoryID');
 
-        $data = ['DataID' => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}', 'Function' => 'GetIndex'];
+        $data = [
+            'DataID'     => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}', // an TractiveGpsIO
+            'CallerID'   => $this->InstanceID,
+            'Function'   => 'GetIndex'
+        ];
+
         $ret = $this->SendDataToParent(json_encode($data));
         $devices = json_decode($ret, true);
         $this->SendDebug(__FUNCTION__, 'devices=' . print_r($devices, true), 0);
 
-        $guid = '{A259E80D-C7B4-F5A9-F82B-B9B05F71B4F3}';
+        $guid = '{A259E80D-C7B4-F5A9-F82B-B9B05F71B4F3}'; // TractiveGpsDevice
         $instIDs = IPS_GetInstanceListByModuleID($guid);
 
         if (is_array($devices) && count($devices)) {
@@ -89,7 +94,7 @@ class TractiveGpsConfig extends IPSModule
                 $instanceID = 0;
                 foreach ($instIDs as $instID) {
                     if (IPS_GetProperty($instID, 'tracker_id') == $tracker_id) {
-                        $this->SendDebug(__FUNCTION__, 'device found: ' . utf8_decode(IPS_GetName($instID)) . ' (' . $instID . ')', 0);
+                        $this->SendDebug(__FUNCTION__, 'device found: ' . IPS_GetName($instID) . ' (' . $instID . ')', 0);
                         $instanceID = $instID;
                         break;
                     }
@@ -198,7 +203,8 @@ class TractiveGpsConfig extends IPSModule
                     'width'   => '200px'
                 ]
             ],
-            'values' => $entries,
+            'values'            => $entries,
+            'discoveryInterval' => 60 * 60 * 24,
         ];
 
         return $formElements;

@@ -278,7 +278,8 @@ class TractiveGpsDevice extends IPSModule
         $tracker_id = $this->ReadPropertyString('tracker_id');
         $pet_id = $this->ReadPropertyString('pet_id');
         $sendData = [
-            'DataID'     => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}',
+            'DataID'     => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}', // an TractiveGpsIO
+            'CallerID'   => $this->InstanceID,
             'Function'   => 'GetUpdateData',
             'tracker_id' => $tracker_id,
             'pet_id'     => $pet_id,
@@ -431,14 +432,15 @@ class TractiveGpsDevice extends IPSModule
         }
 
         if ($this->HasActiveParent() == false) {
-            $this->SendDebug(__FUNCTION__, 'has no active parent instance', 0);
+            $this->SendDebug(__FUNCTION__, 'has no active parent', 0);
             $this->LogMessage('has no active parent instance', KL_WARNING);
             return false;
         }
 
         $tracker_id = $this->ReadPropertyString('tracker_id');
         $sendData = [
-            'DataID'     => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}',
+            'DataID'     => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}', // an TractiveGpsIO
+            'CallerID'   => $this->InstanceID,
             'Function'   => $func,
             'tracker_id' => $tracker_id,
             'payload'    => $payload
