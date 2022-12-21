@@ -574,15 +574,16 @@ class TractiveGpsIO extends IPSModule
         }
 
         $txt = '';
-        $r = $this->GetVehicles($data);
+        $data = '';
+        $r = $this->GetTrackers($data);
         if ($r == false) {
             $txt .= $this->Translate('invalid account-data') . PHP_EOL;
             $txt .= PHP_EOL;
         } else {
             $txt = $this->Translate('valid account-data') . PHP_EOL;
-            $vehicles = json_decode($data, true);
-            $n_vehicles = count($vehicles);
-            $txt .= $n_vehicles . ' ' . $this->Translate('registered vehicles found');
+            $tracker = json_decode($data, true);
+            $n_tracker = count($tracker);
+            $txt .= $n_tracker . ' ' . $this->Translate('registered tracker found');
         }
         $this->SendDebug(__FUNCTION__, 'txt=' . $txt, 0);
         $this->PopupMessage($txt);
@@ -632,27 +633,5 @@ class TractiveGpsIO extends IPSModule
                 $this->SendDebug(__FUNCTION__, 'invalid ident ' . $ident, 0);
                 break;
         }
-    }
-
-	private function GetVehicles()
-    {
-        if ($this->CheckStatus() == self::$STATUS_INVALID) {
-            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
-        }
-
-        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
-
-        $result = false;
-
-        $params = [
-            'apptimezone'   => strval(round(intval(date('Z')) / 60)), // TZ-Differenz in Minuten
-            'appDateTime'   => date('U') . date('v'), // Millisekunden
-            'tireGuardMode' => 'ENABLED',
-        ];
-
-		$url = self::$vehicles_endpoint;
-		$data = $this->CallAPI($url, '', $params, '');
-        return $data;
     }
 }

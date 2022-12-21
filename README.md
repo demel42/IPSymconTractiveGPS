@@ -161,6 +161,10 @@ GUIDs
 
 ## 7. Versions-Historie
 
+- 1.8.1 @ 21.12.2022 09:25
+  - Fix: "Zugang prüfen" funktioniert wieder
+  - update submodule CommonStubs
+
 - 1.8 @ 30.11.2022 17:26
   - Neu: Führen einer Statistik der API-Calls im IO-Modul, Anzeige als Popup im Experten-Bereich
   - Neu: Verwendung der Option 'discoveryInterval' im Konfigurator (ab 6.3) zur Reduzierung der API-Calls: nur noch ein Discovery/Tag

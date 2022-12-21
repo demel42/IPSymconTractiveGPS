@@ -21,7 +21,7 @@
 			"__function__": "TestAccess",
 			"invalid account-data": "Ungültige Zugangsdaten",
 			"valid account-data": "Gültige Zugangsdaten",
-			"registered devices found": "registrierte Geräte gefunden",
+			"registered tracker found": "registrierte Tracker gefunden",
 
 			"__end__": ""
         }

@@ -174,15 +174,13 @@ class TractiveGpsConfig extends IPSModule
 
         $entries = $this->getConfiguratorValues();
         $formElements[] = [
-            'type'    => 'Configurator',
-            'name'    => 'trackers',
-            'caption' => 'GPS Trackers',
-
+            'type'     => 'Configurator',
+            'name'     => 'trackers',
+            'caption'  => 'GPS Trackers',
             'rowCount' => count($entries),
-
-            'add'    => false,
-            'delete' => false,
-            'sort'   => [
+            'add'      => false,
+            'delete'   => false,
+            'sort'     => [
                 'column'    => 'name',
                 'direction' => 'ascending'
             ],
