@@ -162,9 +162,9 @@ GUIDs
 ## 7. Versions-Historie
 
 - 1.9 @ 04.07.2023 14:44
+  - Vorbereitung auf IPS 7 / PHP 8.2
   - update submodule CommonStubs
     - Absicherung bei Zugriff auf Objekte und Inhalte
-    - Vorbereitung auf IPS 7 / PHP 8.2
 
 - 1.8.1 @ 21.12.2022 09:25
   - Fix: "Zugang prüfen" funktioniert wieder
