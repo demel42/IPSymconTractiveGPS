@@ -87,9 +87,9 @@ ruft die Daten des Tractive-Ortungsgeräte ab. Wird automatisch zyklisch durch d
 
 #### Properties
 
-| Eigenschaft               | Typ      | Standardwert | Beschreibung |
-| :------------------------ | :------  | :----------- | :----------- |
-| Zugangsdaten              | string   |              | Benutzername und Passwort von https://my.tractive.com |
+| Eigenschaft               | Typ     | Standardwert | Beschreibung |
+| :------------------------ | :------ | :----------- | :----------- |
+| Zugangsdaten              | string  |              | Benutzername und Passwort von https://my.tractive.com |
 
 #### Schaltflächen
 
@@ -101,10 +101,12 @@ ruft die Daten des Tractive-Ortungsgeräte ab. Wird automatisch zyklisch durch d
 
 #### Properties
 
-| Eigenschaft               | Typ      | Standardwert | Beschreibung |
-| :------------------------ | :------  | :----------- | :----------- |
-| Kategorie                 | integer  | 0            | Kategorie im Objektbaum, unter dem die Instanzen angelegt werden |
-| Produkte                  | list     |              | Liste der verfügbaren Produkte |
+| Eigenschaft               | Typ     | Standardwert | Beschreibung |
+| :------------------------ | :------ | :----------- | :----------- |
+| Kategorie                 | integer | 0            | Kategorie im Objektbaum, unter dem die Instanzen angelegt werden _[1]_ |
+| Produkte                  | list    |              | Liste der verfügbaren Produkte |
+
+_[1]_: nur bis IPS-Version 7 vorhanden, danach ist eine Einstellmöglichkeit Bestandteil des Standard-Konfigurators
 
 ### TractiveGpsDevice
 
@@ -112,15 +114,15 @@ ruft die Daten des Tractive-Ortungsgeräte ab. Wird automatisch zyklisch durch d
 
 werden vom Konfigurator beim Anlegen der Instanz gesetzt.
 
-| Eigenschaft              | Typ      | Standardwert | Beschreibung |
-| :----------------------- | :--------| :----------- | :----------- |
-| Tracker-ID               | string   |              | von TractiveGpsConfig vorgegeben |
-| Modell                   | string   |              | von TractiveGpsConfig vorgegeben |
-| Haustier-ID              | string   |              | von TractiveGpsConfig vorgegeben |
-|                          |          |              | |
-| Position speichern       | boolean  | nein         | Positionsangaben in einer Variable speichern |
-|                          |          |              | |
-| Aktualisiere Daten ...   | integer  | 5            | Aktualisierungsintervall, Angabe in Minuten |
+| Eigenschaft              | Typ     | Standardwert | Beschreibung |
+| :----------------------- | :------ | :----------- | :----------- |
+| Tracker-ID               | string  |              | von TractiveGpsConfig vorgegeben |
+| Modell                   | string  |              | von TractiveGpsConfig vorgegeben |
+| Haustier-ID              | string  |              | von TractiveGpsConfig vorgegeben |
+|                          |         |              | |
+| Position speichern       | boolean | nein         | Positionsangaben in einer Variable speichern |
+|                          |         |              | |
+| Aktualisiere Daten ...   | integer | 5            | Aktualisierungsintervall, Angabe in Minuten |
 
 in _Position_ wird die akuelle Positon gespeichert; es werden Longitude und Latitude sowie Altitude als json-encodeded String abgelegt. Wenn die Variable protokolliert wird, können damit längerfristig die Weg des Trackers dargestellt werden.
 Beispiel-Script siehe [docs/Position2GoogelMaps.php](docs/Position2GoogelMaps.php).
@@ -160,6 +162,9 @@ GUIDs
   - `{94B20D14-415B-1E19-8EA4-839F948B6CBE}`: an TractiveGpsConfig, TractiveGpsDevice
 
 ## 7. Versions-Historie
+
+- 1.11 @ 10.12.2023 15:09
+  - Neu: ab IPS-Version 7 ist im Konfigurator die Angabe einer Import-Kategorie integriert, daher entfällt die bisher vorhandene separate Einstellmöglichkeit
 
 - 1.10 @ 03.11.2023 11:06
   - Neu: Ermittlung von Speicherbedarf und Laufzeit (aktuell und für 31 Tage) und Anzeige im Panel "Information"
