@@ -36,8 +36,9 @@ class TractiveGpsIO extends IPSModule
         $this->RegisterPropertyString('user', '');
         $this->RegisterPropertyString('password', '');
 
+        $this->RegisterPropertyBoolean('collectApiCallStats', true);
+
         $this->RegisterAttributeString('UpdateInfo', json_encode([]));
-        $this->RegisterAttributeString('ApiCallStats', json_encode([]));
         $this->RegisterAttributeString('ModuleStats', json_encode([]));
     }
 
@@ -105,18 +106,30 @@ class TractiveGpsIO extends IPSModule
         ];
 
         $formElements[] = [
-            'type'    => 'Label',
-            'caption' => 'Account from https://my.tractive.com'
+            'type'    => 'ExpansionPanel',
+            'caption' => 'Access data',
+            'items'   => [
+                [
+                    'type'    => 'Label',
+                    'caption' => 'Account from https://my.tractive.com'
+                ],
+                [
+                    'type'    => 'ValidationTextBox',
+                    'name'    => 'user',
+                    'caption' => 'Username'
+                ],
+                [
+                    'type'    => 'PasswordTextBox',
+                    'name'    => 'password',
+                    'caption' => 'Password'
+                ]
+            ],
         ];
+
         $formElements[] = [
-            'type'    => 'ValidationTextBox',
-            'name'    => 'user',
-            'caption' => 'Username'
-        ];
-        $formElements[] = [
-            'type'    => 'PasswordTextBox',
-            'name'    => 'password',
-            'caption' => 'Password'
+            'type'    => 'CheckBox',
+            'name'    => 'collectApiCallStats',
+            'caption' => 'Collect data of API calls'
         ];
 
         return $formElements;
@@ -141,18 +154,24 @@ class TractiveGpsIO extends IPSModule
             'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "TestAccess", "");',
         ];
 
+        $items = [
+            [
+                'type'    => 'Button',
+                'caption' => 'Clear token',
+                'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ClearToken", "");',
+            ],
+        ];
+
+        $collectApiCallStats = $this->ReadPropertyBoolean('collectApiCallStats');
+        if ($collectApiCallStats) {
+            $items[] = $this->GetApiCallStatsFormItem();
+        }
+
         $formActions[] = [
             'type'      => 'ExpansionPanel',
             'caption'   => 'Expert area',
             'expanded'  => false,
-            'items'     => [
-                [
-                    'type'    => 'Button',
-                    'caption' => 'Clear token',
-                    'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ClearToken", "");',
-                ],
-                $this->GetApiCallStatsFormItem(),
-            ],
+            'items'     => $items,
         ];
 
         $formActions[] = $this->GetInformationFormAction();
@@ -364,7 +383,10 @@ class TractiveGpsIO extends IPSModule
             $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
         }
 
-        $this->ApiCallsCollect($url, $err, $statuscode);
+        $collectApiCallStats = $this->ReadPropertyBoolean('collectApiCallStats');
+        if ($collectApiCallStats) {
+            $this->ApiCallCollect($url, $err, $statuscode);
+        }
 
         return $statuscode;
     }

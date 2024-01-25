@@ -10,9 +10,12 @@
 			"__elements__": "",
 			"Disable instance": "Instanz deaktivieren",
 
+			"Access data": "Zugangsdaten",
 			"Account from https://my.tractive.com": "Zugangsdaten von https://my.tractive.com",
 			"Username": "Benutzerkennung",
 			"Password": "Passwort",
+
+			"Collect data of API calls": "Daten von API-Aufrufen sammeln",
 
 			"__actions__": "",
 			"Test access": "Zugang prüfen",
