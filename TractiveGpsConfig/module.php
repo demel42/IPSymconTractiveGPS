@@ -107,8 +107,8 @@ class TractiveGpsConfig extends IPSModule
 
                 $instanceID = 0;
                 foreach ($instIDs as $instID) {
-                    if (IPS_GetProperty($instID, 'tracker_id') == $tracker_id) {
-                        $this->SendDebug(__FUNCTION__, 'device found: ' . IPS_GetName($instID) . ' (' . $instID . ')', 0);
+                    if (@IPS_GetProperty($instID, 'tracker_id') == $tracker_id) {
+                        $this->SendDebug(__FUNCTION__, 'instance found: ' . IPS_GetName($instID) . ' (' . $instID . ')', 0);
                         $instanceID = $instID;
                         break;
                     }
@@ -135,7 +135,7 @@ class TractiveGpsConfig extends IPSModule
                     ]
                 ];
                 $entries[] = $entry;
-                $this->SendDebug(__FUNCTION__, 'entry=' . print_r($entry, true), 0);
+                $this->SendDebug(__FUNCTION__, 'instanceID=' . $instanceID . ', entry=' . print_r($entry, true), 0);
             }
         }
         foreach ($instIDs as $instID) {
@@ -155,8 +155,8 @@ class TractiveGpsConfig extends IPSModule
             }
 
             $name = IPS_GetName($instID);
-            $model_number = IPS_GetProperty($instID, 'model_number');
-            $tracker_id = IPS_GetProperty($instID, 'tracker_id');
+            @$model_number = IPS_GetProperty($instID, 'model_number');
+            @$tracker_id = IPS_GetProperty($instID, 'tracker_id');
 
             $entry = [
                 'instanceID'        => $instID,
@@ -164,9 +164,8 @@ class TractiveGpsConfig extends IPSModule
                 'model_number'      => $model_number,
                 'tracker_id'        => $tracker_id,
             ];
-
             $entries[] = $entry;
-            $this->SendDebug(__FUNCTION__, 'missing entry=' . print_r($entry, true), 0);
+            $this->SendDebug(__FUNCTION__, 'lost: instanceID=' . $instID . ', entry=' . print_r($entry, true), 0);
         }
 
         return $entries;
