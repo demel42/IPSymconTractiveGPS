@@ -14,7 +14,7 @@ class TractiveGpsDevice extends IPSModule
     {
         parent::__construct($InstanceID);
 
-        $this->CommonContruct(__DIR__);
+        $this->CommonConstruct(__DIR__);
     }
 
     public function __destruct()
@@ -238,7 +238,7 @@ class TractiveGpsDevice extends IPSModule
         $formActions[] = [
             'type'    => 'Button',
             'caption' => 'Update data',
-            'onClick' => $this->GetModulePrefix() . '_UpdateData($id);'
+            'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateData", "");',
         ];
 
         $formActions[] = [
@@ -335,10 +335,10 @@ class TractiveGpsDevice extends IPSModule
                     $this->SaveValue('LastContact', $last_contact, $is_changed);
 
                     $battery_level = $this->GetArrayElem($elem, 'battery_level', '');
-                    $this->SetValue('BatteryLevel', (int) $battery_level);
+                    $this->SaveValue('BatteryLevel', (int) $battery_level, $is_changed);
 
                     $temperature_state = $this->GetArrayElem($elem, 'temperature_state', '');
-                    $this->SetValue('TemperatureState', $this->Translate($temperature_state));
+                    $this->SaveValue('TemperatureState', $this->Translate($temperature_state), $is_changed);
                     break;
                 case 'device_pos_report':
                     $last_pos = $this->GetArrayElem($elem, 'time', '');
@@ -382,11 +382,11 @@ class TractiveGpsDevice extends IPSModule
                     }
 
                     $sensor_used = $this->GetArrayElem($elem, 'sensor_used', '');
-                    $this->SaveValue('SensorUsed', $sensor_used, $is_changed);
+                    $this->SaveValue('SensorUsed', $this->Translate($sensor_used), $is_changed);
                     break;
                 case 'tracker':
                     $state = $this->GetArrayElem($elem, 'state', '');
-                    $this->SetValue('State', $this->Translate($state));
+                    $this->SaveValue('State', $this->Translate($state), $is_changed);
                     break;
                 case 'tracker_command_state':
                     $_id = $elem['_id'];
@@ -396,17 +396,17 @@ class TractiveGpsDevice extends IPSModule
                     switch ($_id) {
                         case 'buzzer_control':
                             $pending = $this->GetArrayElem($elem, 'pending', '');
-                            $this->SetValue('BuzzerActive', (bool) $pending, $is_changed);
+                            $this->SaveValue('BuzzerActive', (bool) $pending, $is_changed);
                             $this->SendDebug(__FUNCTION__, 'type=' . $_type . ', id=' . $_id . ', elem=' . print_r($elem, true), 0);
                             break;
                         case 'led_control':
                             $pending = $this->GetArrayElem($elem, 'pending', '');
-                            $this->SetValue('LightActive', (bool) $pending, $is_changed);
+                            $this->SaveValue('LightActive', (bool) $pending, $is_changed);
                             $this->SendDebug(__FUNCTION__, 'type=' . $_type . ', id=' . $_id . ', elem=' . print_r($elem, true), 0);
                             break;
                         case 'live_tracking':
                             $active = $this->GetArrayElem($elem, 'active', '');
-                            $this->SetValue('LiveTrackingActive', (bool) $active, $is_changed);
+                            $this->SaveValue('LiveTrackingActive', (bool) $active, $is_changed);
                             $this->SendDebug(__FUNCTION__, 'type=' . $_type . ', id=' . $_id . ', elem=' . print_r($elem, true), 0);
                             break;
                     }

@@ -163,6 +163,11 @@ GUIDs
 
 ## 7. Versions-Historie
 
+- 1.13 @ 10.06.2024 15:37
+  - Fix: Aktion "Aktualisiere Daten" funktionierte nicht mehr
+  - Fxi: Inhalt von "SensorUsed" übersetzt
+  - update submodule CommonStubs
+
 - 1.12 @ 07.02.2024 17:50
   - Fix: Absicherung von Zugriffen auf andere Instanzen in Konfiguratoren
   - Änderung: Medien-Objekte haben zur eindeutigen Identifizierung jetzt ebenfalls ein Ident
