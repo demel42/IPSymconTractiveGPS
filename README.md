@@ -163,6 +163,9 @@ GUIDs
 
 ## 7. Versions-Historie
 
+- 1.14 @ 19.06.2024 08:02
+  - Änderung: eigene Tractive-Client-ID für IPS
+
 - 1.13 @ 10.06.2024 15:37
   - Fix: Aktion "Aktualisiere Daten" funktionierte nicht mehr
   - Fxi: Inhalt von "SensorUsed" übersetzt

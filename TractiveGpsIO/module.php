@@ -10,6 +10,8 @@ class TractiveGpsIO extends IPSModule
     use TractiveGps\StubsCommonLib;
     use TractiveGpsLocalLib;
 
+    private static $x_tractive_client = '6671ac0e3c527688feb5fe80';
+
     private static $semaphoreTM = 5 * 1000;
 
     private $SemaphoreID;
@@ -265,7 +267,7 @@ class TractiveGpsIO extends IPSModule
             $header = [
                 'content-type: application/json;charset=UTF-8',
                 'accept: application/json, text/plain, */*',
-                'x-tractive-client: 6671ac0e3c527688feb5fe80',
+                'x-tractive-client: ' . self::$x_tractive_client,
             ];
             $postdata = [
                 'platform_email' => $user,
@@ -577,7 +579,7 @@ class TractiveGpsIO extends IPSModule
             'content-type: application/json;charset=UTF-8',
             'accept: application/json, text/plain, */*',
             'authorization: Bearer ' . $access_token,
-            'x-tractive-client: 6671ac0e3c527688feb5fe80',
+            'x-tractive-client: ' . self::$x_tractive_client,
             'x-tractive-user: ' . $user_id,
         ];
 
