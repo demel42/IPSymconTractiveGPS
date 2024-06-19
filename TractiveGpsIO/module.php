@@ -265,7 +265,7 @@ class TractiveGpsIO extends IPSModule
             $header = [
                 'content-type: application/json;charset=UTF-8',
                 'accept: application/json, text/plain, */*',
-                'x-tractive-client: 5728aa1fc9077f7c32000186',
+                'x-tractive-client: 6671ac0e3c527688feb5fe80',
             ];
             $postdata = [
                 'platform_email' => $user,
@@ -577,7 +577,7 @@ class TractiveGpsIO extends IPSModule
             'content-type: application/json;charset=UTF-8',
             'accept: application/json, text/plain, */*',
             'authorization: Bearer ' . $access_token,
-            'x-tractive-client: 5728aa1fc9077f7c32000186',
+            'x-tractive-client: 6671ac0e3c527688feb5fe80',
             'x-tractive-user: ' . $user_id,
         ];
 
