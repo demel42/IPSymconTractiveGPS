@@ -163,6 +163,9 @@ GUIDs
 
 ## 7. Versions-Historie
 
+- 1.15 @ 03.01.2025 14:17
+ - update submodule CommonStubs
+
 - 1.14 @ 19.06.2024 08:02
   - Änderung: eigene Tractive-Client-ID für IPS
 
