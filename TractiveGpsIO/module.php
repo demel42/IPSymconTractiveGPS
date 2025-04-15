@@ -12,9 +12,8 @@ class TractiveGpsIO extends IPSModule
 
     private static $x_tractive_client = '6671ac0e3c527688feb5fe80';
 
-    private static $semaphoreTM = 5 * 1000;
-
     private $SemaphoreID;
+    private $SemaphoreTM;
 
     public function __construct(string $InstanceID)
     {
@@ -37,6 +36,10 @@ class TractiveGpsIO extends IPSModule
 
         $this->RegisterPropertyString('user', '');
         $this->RegisterPropertyString('password', '');
+
+        $this->RegisterPropertyInteger('curl_exec_timeout', 15);
+        $this->RegisterPropertyInteger('curl_exec_attempts', 3);
+        $this->RegisterPropertyFloat('curl_exec_delay', 1);
 
         $this->RegisterPropertyBoolean('collectApiCallStats', true);
 
@@ -94,6 +97,11 @@ class TractiveGpsIO extends IPSModule
             return;
         }
 
+        $curl_exec_timeout = $this->ReadPropertyInteger('curl_exec_timeout');
+        $curl_exec_attempts = $this->ReadPropertyInteger('curl_exec_attempts');
+        $curl_exec_delay = $this->ReadPropertyFloat('curl_exec_delay');
+        $this->SemaphoreTM = ((($curl_exec_timeout + ceil($curl_exec_delay)) * $curl_exec_attempts) + 1) * 1000;
+
         $this->MaintainStatus(IS_ACTIVE);
     }
 
@@ -130,6 +138,39 @@ class TractiveGpsIO extends IPSModule
                     'caption' => 'Password'
                 ]
             ],
+        ];
+
+        $formElements[] = [
+            'type'    => 'ExpansionPanel',
+            'items'   => [
+                [
+                    'type'    => 'Label',
+                    'caption' => 'Behavior of HTTP requests at the technical level'
+                ],
+                [
+                    'type'    => 'NumberSpinner',
+                    'minimum' => 0,
+                    'suffix'  => 'Seconds',
+                    'name'    => 'curl_exec_timeout',
+                    'caption' => 'Timeout of an HTTP call'
+                ],
+                [
+                    'type'    => 'NumberSpinner',
+                    'minimum' => 0,
+                    'name'    => 'curl_exec_attempts',
+                    'caption' => 'Number of attempts after communication failure'
+                ],
+                [
+                    'type'     => 'NumberSpinner',
+                    'minimum'  => 0.1,
+                    'maximum'  => 60,
+                    'digits'   => 1,
+                    'suffix'   => 'Seconds',
+                    'name'     => 'curl_exec_delay',
+                    'caption'  => 'Delay between attempts'
+                ],
+            ],
+            'caption' => 'Communication'
         ];
 
         $formElements[] = [
@@ -250,7 +291,7 @@ class TractiveGpsIO extends IPSModule
         $user = $this->ReadPropertyString('user');
         $password = $this->ReadPropertyString('password');
 
-        if (IPS_SemaphoreEnter($this->SemaphoreID, self::$semaphoreTM) == false) {
+        if (IPS_SemaphoreEnter($this->SemaphoreID, $this->SemaphoreTM) == false) {
             $this->SendDebug(__FUNCTION__, 'unable to lock sempahore ' . $this->SemaphoreID, 0);
             return false;
         }
@@ -318,6 +359,10 @@ class TractiveGpsIO extends IPSModule
 
     private function do_HttpRequest($func, $header, $postdata, $mode, &$data)
     {
+        $curl_exec_timeout = $this->ReadPropertyInteger('curl_exec_timeout');
+        $curl_exec_attempts = $this->ReadPropertyInteger('curl_exec_attempts');
+        $curl_exec_delay = $this->ReadPropertyFloat('curl_exec_delay');
+
         $url = 'https://graph.tractive.com/3' . $func;
 
         $this->SendDebug(__FUNCTION__, 'http-' . $mode . ': url=' . $url, 0);
@@ -349,15 +394,24 @@ class TractiveGpsIO extends IPSModule
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        $cdata = curl_exec($ch);
-        $cerrno = curl_errno($ch);
-        $cerror = $cerrno ? curl_error($ch) : '';
+
+        $attempt = 1;
+        do {
+            $cdata = curl_exec($ch);
+            $cerrno = curl_errno($ch);
+            $cerror = $cerrno ? curl_error($ch) : '';
+            if ($cerrno) {
+                $this->SendDebug(__FUNCTION__, ' => attempt=' . $attempt . ', got curl-errno ' . $cerrno . ' (' . $cerror . ')', 0);
+                IPS_Sleep((int) floor($curl_exec_delay * 1000));
+            }
+        } while ($cerrno && $attempt++ <= $curl_exec_attempts);
+
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $redirect_url = curl_getinfo($ch, CURLINFO_REDIRECT_URL);
         curl_close($ch);
 
         $duration = round(microtime(true) - $time_start, 2);
-        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's, attempts=' . $attempt, 0);
         $this->SendDebug(__FUNCTION__, ' => cdata=' . $cdata, 0);
 
         $statuscode = 0;
@@ -585,7 +639,7 @@ class TractiveGpsIO extends IPSModule
 
         $mode = $postdata == false ? 'GET' : 'POST';
 
-        if (IPS_SemaphoreEnter($this->SemaphoreID, self::$semaphoreTM) == false) {
+        if (IPS_SemaphoreEnter($this->SemaphoreID, $this->SemaphoreTM) == false) {
             $this->SendDebug(__FUNCTION__, 'unable to lock sempahore ' . $this->SemaphoreID, 0);
             return false;
         }
@@ -624,7 +678,7 @@ class TractiveGpsIO extends IPSModule
 
     private function ClearToken()
     {
-        if (IPS_SemaphoreEnter($this->SemaphoreID, self::$semaphoreTM) == false) {
+        if (IPS_SemaphoreEnter($this->SemaphoreID, $this->SemaphoreTM) == false) {
             $this->SendDebug(__FUNCTION__, 'unable to lock sempahore ' . $this->SemaphoreID, 0);
             return false;
         }

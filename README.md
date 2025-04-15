@@ -87,9 +87,17 @@ ruft die Daten des Tractive-Ortungsgeräte ab. Wird automatisch zyklisch durch d
 
 #### Properties
 
-| Eigenschaft               | Typ     | Standardwert | Beschreibung |
-| :------------------------ | :------ | :----------- | :----------- |
-| Zugangsdaten              | string  |              | Benutzername und Passwort von https://my.tractive.com |
+| Eigenschaft                    | Typ     | Standardwert | Beschreibung |
+| :----------------------------- | :------ | :----------- | :----------- |
+| Zugangsdaten                   | string  |              | Benutzername und Passwort von https://my.tractive.com |
+|                                |         |              | |
+|                                |         |              | Behandlung von Kommunikationsfehlern _[1]_ |
+| Timeout eines Abrufs           | integer | 15           | - Timeout eines HTTP-Aufrufs in Sekunden |
+| Anzahl der Versuche            | integer | 3            | - Anzahl der Versuche nach Kommunikationsfehler |
+| Verzögerung zwischen Versuchen | float   | 1            | - Verzögerung zwischen den Versuchen in Sekunden |
+
+_[1]_: als Kommunikationsfehler werden die Abrufe definiert, bei der es keine qualifizierte Reaktion der Gegenseite gibt (also einen HTTP-Code).<br>
+Achtung: die maximale Wartezeit in Sekunden berechnet sich wie folgt: ((*Timeout* + *Verzögerung*) * *Anzahl*) + 1 => solange ist der Thread der Instanz maximal blockiert!
 
 #### Schaltflächen
 
@@ -162,6 +170,11 @@ GUIDs
   - `{94B20D14-415B-1E19-8EA4-839F948B6CBE}`: an TractiveGpsConfig, TractiveGpsDevice
 
 ## 7. Versions-Historie
+
+- 1.16 @ 13.04.2025 13:42
+  - Verbesserung: ein aufgrund Nichterreichbarkeit des Servers fehlgeschlagener HTTP-Aufruf wird mehrfach wiederholt.
+    Der Timeout des Abrufs und die Anzahl der Versuche und die Verzögerung zwischen den Versuchen kann nun eingestellt werden.
+    Achtung: Hinweis zu diesen Einstellungen im README.md beachten
 
 - 1.15 @ 03.01.2025 14:17
  - update submodule CommonStubs

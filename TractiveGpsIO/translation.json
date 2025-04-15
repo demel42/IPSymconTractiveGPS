@@ -1,6 +1,6 @@
 {
-    "translations": {
-        "de": {
+	"translations": {
+		"de": {
 			"Tractive GPS I/O": "Tractive GPS I/O",
 
 			"__function__": "CheckConfiguration",
@@ -14,6 +14,13 @@
 			"Account from https://my.tractive.com": "Zugangsdaten von https://my.tractive.com",
 			"Username": "Benutzerkennung",
 			"Password": "Passwort",
+
+			"Communication": "Kommunikation",
+			"Behavior of HTTP requests at the technical level": "Verhalten von HTTP-Anfragen auf technischer Ebene",
+			"Timeout of an HTTP call": "Timeout eines HTTP-Aufrufs",
+			"Seconds": "Sekunden",
+			"Number of attempts after communication failure": "Anzahl der Versuche nach Kommunikationsfehler",
+			"Delay between attempts": "Verzögerung zwischen den Versuchen",
 
 			"Collect data of API calls": "Daten von API-Aufrufen sammeln",
 
@@ -30,6 +37,6 @@
 			"registered tracker found": "registrierte Tracker gefunden",
 
 			"__end__": ""
-        }
-    }
+		}
+	}
 }
