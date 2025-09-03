@@ -13,7 +13,17 @@ class TractiveGpsIO extends IPSModule
     private static $x_tractive_client = '6671ac0e3c527688feb5fe80';
 
     private $SemaphoreID;
-    private $SemaphoreTM;
+
+    private function GetSemaphoreTM()
+    {
+        $curl_exec_timeout = $this->ReadPropertyInteger('curl_exec_timeout');
+        $curl_exec_attempts = $this->ReadPropertyInteger('curl_exec_attempts');
+        $curl_exec_delay = $this->ReadPropertyFloat('curl_exec_delay');
+        $semaphoreTM = ((($curl_exec_timeout + ceil($curl_exec_delay)) * $curl_exec_attempts) + 1) * 1000;
+
+        //$this->SendDebug(__FUNCTION__, 'semaphoreTM='.$semaphoreTM, 0);
+        return $semaphoreTM;
+    }
 
     public function __construct(string $InstanceID)
     {
@@ -96,11 +106,6 @@ class TractiveGpsIO extends IPSModule
             $this->MaintainStatus(IS_INACTIVE);
             return;
         }
-
-        $curl_exec_timeout = $this->ReadPropertyInteger('curl_exec_timeout');
-        $curl_exec_attempts = $this->ReadPropertyInteger('curl_exec_attempts');
-        $curl_exec_delay = $this->ReadPropertyFloat('curl_exec_delay');
-        $this->SemaphoreTM = ((($curl_exec_timeout + ceil($curl_exec_delay)) * $curl_exec_attempts) + 1) * 1000;
 
         $this->MaintainStatus(IS_ACTIVE);
     }
@@ -277,7 +282,7 @@ class TractiveGpsIO extends IPSModule
                 default:
                     $this->SendDebug(__FUNCTION__, 'unknown function "' . $jdata['Function'] . '"', 0);
                     break;
-                }
+            }
         } else {
             $this->SendDebug(__FUNCTION__, 'unknown message-structure', 0);
         }
@@ -291,7 +296,7 @@ class TractiveGpsIO extends IPSModule
         $user = $this->ReadPropertyString('user');
         $password = $this->ReadPropertyString('password');
 
-        if (IPS_SemaphoreEnter($this->SemaphoreID, $this->SemaphoreTM) == false) {
+        if (IPS_SemaphoreEnter($this->SemaphoreID, $this->GetSemaphoreTM()) == false) {
             $this->SendDebug(__FUNCTION__, 'unable to lock sempahore ' . $this->SemaphoreID, 0);
             return false;
         }
@@ -639,7 +644,7 @@ class TractiveGpsIO extends IPSModule
 
         $mode = $postdata == false ? 'GET' : 'POST';
 
-        if (IPS_SemaphoreEnter($this->SemaphoreID, $this->SemaphoreTM) == false) {
+        if (IPS_SemaphoreEnter($this->SemaphoreID, $this->GetSemaphoreTM()) == false) {
             $this->SendDebug(__FUNCTION__, 'unable to lock sempahore ' . $this->SemaphoreID, 0);
             return false;
         }
@@ -678,7 +683,7 @@ class TractiveGpsIO extends IPSModule
 
     private function ClearToken()
     {
-        if (IPS_SemaphoreEnter($this->SemaphoreID, $this->SemaphoreTM) == false) {
+        if (IPS_SemaphoreEnter($this->SemaphoreID, $this->GetSemaphoreTM()) == false) {
             $this->SendDebug(__FUNCTION__, 'unable to lock sempahore ' . $this->SemaphoreID, 0);
             return false;
         }

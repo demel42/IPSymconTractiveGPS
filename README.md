@@ -171,6 +171,9 @@ GUIDs
 
 ## 7. Versions-Historie
 
+- 1.17 @ 03.09.2025 17:07
+  - Fix: verbessertes Semaphore-Handling
+
 - 1.16 @ 13.04.2025 13:42
   - Verbesserung: ein aufgrund Nichterreichbarkeit des Servers fehlgeschlagener HTTP-Aufruf wird mehrfach wiederholt.
     Der Timeout des Abrufs und die Anzahl der Versuche und die Verzögerung zwischen den Versuchen kann nun eingestellt werden.
