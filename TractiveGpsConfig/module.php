@@ -96,7 +96,7 @@ class TractiveGpsConfig extends IPSModule
         $this->SendDebug(__FUNCTION__, 'devices=' . print_r($devices, true), 0);
 
         $guid = '{A259E80D-C7B4-F5A9-F82B-B9B05F71B4F3}'; // TractiveGpsDevice
-        $instIDs = IPS_GetInstanceListByModuleID($guid);
+        $instIDs = (array) IPS_GetInstanceListByModuleID($guid);
 
         if (is_array($devices) && count($devices)) {
             foreach ($devices as $device) {

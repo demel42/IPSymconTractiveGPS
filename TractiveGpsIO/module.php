@@ -413,7 +413,9 @@ class TractiveGpsIO extends IPSModule
 
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $redirect_url = curl_getinfo($ch, CURLINFO_REDIRECT_URL);
-        curl_close($ch);
+        if (IPS_GetKernelVersion() < 8.5) {
+            curl_close($ch);
+        }
 
         $duration = round(microtime(true) - $time_start, 2);
         $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's, attempts=' . $attempt, 0);
@@ -434,13 +436,13 @@ class TractiveGpsIO extends IPSModule
         } elseif ($httpcode == 403) {
             $jdata = json_decode($cdata, true);
             $statuscode = self::$IS_UNAUTHORIZED;
-            $err = 'got http-code ' . $httpcode . ' (forbidden)';
+            $err = 'got http-code ' . $httpcode . ' (unauthorized)';
         } elseif ($httpcode >= 500 && $httpcode <= 599) {
             $statuscode = self::$IS_SERVERERROR;
             $err = 'got http-code ' . $httpcode . ' (server error)';
         } else {
             $statuscode = self::$IS_HTTPERROR;
-            $err = 'got http-code ' . $httpcode;
+            $err = 'got http-code ' . $httpcode . ' (' . $this->HttpCode2Text($httpcode) . ')';
         }
 
         if ($statuscode) {
@@ -673,7 +675,7 @@ class TractiveGpsIO extends IPSModule
             $txt .= PHP_EOL;
         } else {
             $txt = $this->Translate('valid account-data') . PHP_EOL;
-            $tracker = json_decode($data, true);
+            $tracker = (array) json_decode($data, true);
             $n_tracker = count($tracker);
             $txt .= $n_tracker . ' ' . $this->Translate('registered tracker found');
         }

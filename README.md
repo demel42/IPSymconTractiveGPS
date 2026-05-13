@@ -171,6 +171,10 @@ GUIDs
 
 ## 7. Versions-Historie
 
+- 1.18 @ 12.05.2026 14:15
+  - Fix: Änderung von deprecated php code
+  - update submodule CommonStubs
+
 - 1.17 @ 03.09.2025 17:07
   - Fix: verbessertes Semaphore-Handling
 
