@@ -171,7 +171,7 @@ GUIDs
 
 ## 7. Versions-Historie
 
-- 1.19 @ 24.05.2026 14:57
+- 1.19 @ 25.05.2026 10:38
   - Erweiterung: optionale Übernahme von Gesundheitsdaten
 
 - 1.18 @ 12.05.2026 14:15
