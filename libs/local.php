@@ -68,5 +68,7 @@ trait TractiveGpsLocalLib
         $this->CreateVarProfile('TractiveGps.Course', VARIABLETYPE_FLOAT, ' °', 0, 0, 0, 0, '', [], $reInstall);
         $this->CreateVarProfile('TractiveGps.Location', VARIABLETYPE_FLOAT, ' °', 0, 0, 0, 5, '', [], $reInstall);
         $this->CreateVarProfile('TractiveGps.Uncertainty', VARIABLETYPE_FLOAT, ' m', 0, 0, 0, 0, '', [], $reInstall);
+
+        $this->CreateVarProfile('TractiveGps.Minutes', VARIABLETYPE_INTEGER, ' min', 0, 0, 0, 0, '', [], $reInstall);
     }
 }

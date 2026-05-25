@@ -36,6 +36,13 @@ class TractiveGpsDevice extends IPSModule
 
         $this->RegisterPropertyBoolean('save_position', false);
 
+        $this->RegisterPropertyBoolean('with_activity', false);
+        $this->RegisterPropertyBoolean('with_sleep', false);
+        $this->RegisterPropertyBoolean('with_heart_rate', false);
+        $this->RegisterPropertyBoolean('with_respiratory_rate', false);
+        $this->RegisterPropertyBoolean('with_bark', false);
+        $this->RegisterPropertyBoolean('with_scratch', false);
+
         $this->RegisterPropertyInteger('update_interval', '5');
 
         $this->RegisterAttributeString('UpdateInfo', json_encode([]));
@@ -132,6 +139,25 @@ class TractiveGpsDevice extends IPSModule
         $this->MaintainVariable('LiveTrackingActive', $this->Translate('Live tracking'), VARIABLETYPE_BOOLEAN, 'TractiveGps.Switch', $vpos++, true);
         $this->MaintainAction('LiveTrackingActive', true);
 
+        $with_activity = $this->ReadPropertyBoolean('with_activity');
+        $with_sleep = $this->ReadPropertyBoolean('with_sleep');
+        $with_heart_rate = $this->ReadPropertyBoolean('with_heart_rate');
+        $with_respiratory_rate = $this->ReadPropertyBoolean('with_respiratory_rate');
+        $with_bark = $this->ReadPropertyBoolean('with_bark');
+        $with_scratch = $this->ReadPropertyBoolean('with_scratch');
+
+        $vpos = 70;
+        $this->MaintainVariable('MinutesActive', $this->Translate('Activity'), VARIABLETYPE_INTEGER, 'TractiveGps.Minutes', $vpos++, $with_activity);
+
+        $this->MaintainVariable('MinutesDaySleep', $this->Translate('Daytime sleep'), VARIABLETYPE_INTEGER, 'TractiveGps.Minutes', $vpos++, true);
+        $this->MaintainVariable('MinutesNightSleep', $this->Translate('Nighttime sleep'), VARIABLETYPE_INTEGER, 'TractiveGps.Minutes', $vpos++, true);
+        $this->MaintainVariable('MinutesCalm', $this->Translate('Calm phase'), VARIABLETYPE_INTEGER, 'TractiveGps.Minutes', $vpos++, true);
+
+        /*
+        $this->MaintainVariable('RestingHeartRate', $this->Translate('Rest heart rate'), VARIABLETYPE_STRING, '', $vpos++, true);
+        $this->MaintainVariable('RestingRespiratoryRate', $this->Translate('Rest respiratory rate'), VARIABLETYPE_STRING, '', $vpos++, true);
+         */
+
         $vpos = 90;
         $this->MaintainVariable('LastUpdate', $this->Translate('Last update'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
         $this->MaintainVariable('LastChange', $this->Translate('Last change'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
@@ -196,21 +222,66 @@ class TractiveGpsDevice extends IPSModule
         ];
 
         $formElements[] = [
+            'type'    => 'ExpansionPanel',
+            'items'   => [
+                [
+                    'type'    => 'Label',
+                    'caption' => 'save position to (logged) variable \'Position\''
+                ],
+                [
+                    'type'    => 'CheckBox',
+                    'name'    => 'save_position',
+                    'caption' => 'save position'
+                ],
+
+                [
+                    'type'    => 'Label',
+                ],
+
+                [
+                    'type'    => 'Label',
+                    'caption' => 'Health overview',
+                ],
+                [
+                    'type'    => 'CheckBox',
+                    'name'    => 'with_activity',
+                    'caption' => '... activity monitoring',
+                ],
+                [
+                    'type'    => 'CheckBox',
+                    'name'    => 'with_sleep',
+                    'caption' => '... sleep monitoring',
+                ],
+                [
+                    'type'    => 'CheckBox',
+                    'name'    => 'with_heart_rate',
+                    'caption' => '... heart rate',
+                ],
+                [
+                    'type'    => 'CheckBox',
+                    'name'    => 'with_respiratory_rate',
+                    'caption' => '... respiratory rate',
+                ],
+                [
+                    'type'    => 'CheckBox',
+                    'name'    => 'with_bark',
+                    'caption' => '... bark behaviour',
+                ],
+                [
+                    'type'    => 'CheckBox',
+                    'name'    => 'with_scratch',
+                    'caption' => '... scratch behaviour',
+                ],
+            ],
+            'caption' => 'Data import settings',
+        ];
+
+        $formElements[] = [
             'type'    => 'NumberSpinner',
             'name'    => 'update_interval',
             'suffix'  => 'Minutes',
             'minimum' => 0,
             'caption' => 'Update interval',
-        ];
-
-        $formElements[] = [
-            'type'    => 'Label',
-            'caption' => 'save position to (logged) variable \'Position\''
-        ];
-        $formElements[] = [
-            'type'    => 'CheckBox',
-            'name'    => 'save_position',
-            'caption' => 'save position'
         ];
 
         $formElements[] = [
@@ -295,20 +366,40 @@ class TractiveGpsDevice extends IPSModule
         $sendData = [
             'DataID'     => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}', // an TractiveGpsIO
             'CallerID'   => $this->InstanceID,
-            'Function'   => 'GetUpdateData',
+            'Function'   => 'GetDeviceData',
             'tracker_id' => $tracker_id,
             'pet_id'     => $pet_id,
         ];
         $this->SendDebug(__FUNCTION__, 'sendData=' . print_r($sendData, true), 0);
         $receiveData = $this->SendDataToParent(json_encode($sendData));
         $this->SendDebug(__FUNCTION__, 'receiveData=' . print_r($receiveData, true), 0);
-        $this->decodeUpdateData($receiveData);
+        $this->decodeDeviceData($receiveData);
+
+        $with_pet_health = false;
+        $with_pet_health |= $this->ReadPropertyBoolean('with_activity');
+        $with_pet_health |= $this->ReadPropertyBoolean('with_sleep');
+        $with_pet_health |= $this->ReadPropertyBoolean('with_heart_rate');
+        $with_pet_health |= $this->ReadPropertyBoolean('with_respiratory_rate');
+        $with_pet_health |= $this->ReadPropertyBoolean('with_bark');
+        $with_pet_health |= $this->ReadPropertyBoolean('with_scratch');
+        if ($with_pet_health) {
+            $sendData = [
+                'DataID'     => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}', // an TractiveGpsIO
+                'CallerID'   => $this->InstanceID,
+                'Function'   => 'GetPetHealth',
+                'pet_id'     => $pet_id,
+            ];
+            $this->SendDebug(__FUNCTION__, 'sendData=' . print_r($sendData, true), 0);
+            $receiveData = $this->SendDataToParent(json_encode($sendData));
+            $this->SendDebug(__FUNCTION__, 'receiveData=' . print_r($receiveData, true), 0);
+            $this->decodePetHealth($receiveData);
+        }
 
         $this->SetUpdateInterval();
         $this->MaintainStatus(IS_ACTIVE);
     }
 
-    private function decodeUpdateData($data)
+    private function decodeDeviceData($data)
     {
         if ($data == false) {
             $this->SendDebug(__FUNCTION__, 'no data', 0);
@@ -424,6 +515,86 @@ class TractiveGpsDevice extends IPSModule
 
         $operational = $this->GetValue('State') == 'in Betrieb';
         $this->AdjustActions($operational);
+    }
+
+    private function decodePetHealth($data)
+    {
+        if ($data == false) {
+            $this->SendDebug(__FUNCTION__, 'no data', 0);
+            return;
+        }
+
+        $jdata = json_decode($data, true);
+        if ($jdata == false) {
+            $this->SendDebug(__FUNCTION__, 'malformed data', 0);
+            return;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'data=' . print_r($jdata, true), 0);
+
+        $with_activity = $this->ReadPropertyBoolean('with_activity');
+        $with_sleep = $this->ReadPropertyBoolean('with_sleep');
+        $with_heart_rate = $this->ReadPropertyBoolean('with_heart_rate');
+        $with_respiratory_rate = $this->ReadPropertyBoolean('with_respiratory_rate');
+        $with_bark = $this->ReadPropertyBoolean('with_bark');
+        $with_scratch = $this->ReadPropertyBoolean('with_scratch');
+
+        $fnd = false;
+        if ($with_activity) {
+            $activity = $this->GetArrayElem($jdata, 'activity', 0, $fnd);
+            if ($fnd) {
+                $this->SendDebug(__FUNCTION__, 'activity=' . print_r($activity, true), 0);
+
+                $minutesActive = $this->GetArrayElem($activity, 'minutesActive', 0);
+                $this->SetValue('MinutesActive', $minutesActive);
+                $this->SendDebug(__FUNCTION__, ' ... MinutesActive (activity.minutesActive)=' . $minutesActive, 0);
+            }
+        }
+        if ($with_sleep) {
+            $sleep = $this->GetArrayElem($jdata, 'sleep', 0, $fnd);
+            if ($fnd) {
+                $this->SendDebug(__FUNCTION__, 'sleep=' . print_r($sleep, true), 0);
+
+                $minutesDaySleep = $this->GetArrayElem($sleep, 'minutesDaySleep', 0);
+                $this->SetValue('MinutesDaySleep', $minutesDaySleep);
+                $this->SendDebug(__FUNCTION__, ' ... MinutesDaySleep (sleep.minutesDaySleep)=' . $minutesDaySleep, 0);
+
+                $minutesNightSleep = $this->GetArrayElem($sleep, 'minutesNightSleep', 0);
+                $this->SetValue('MinutesNightSleep', $minutesNightSleep);
+                $this->SendDebug(__FUNCTION__, ' ... MinutesNightSleep (sleep.minutesNightSleep)=' . $minutesNightSleep, 0);
+
+                $minutesCalm = $this->GetArrayElem($sleep, 'minutesCalm', 0);
+                $this->SetValue('MinutesCalm', $minutesCalm);
+                $this->SendDebug(__FUNCTION__, ' ... MinutesCalm (sleep.minutesCalm)=' . $minutesActive, 0);
+            }
+        }
+        if ($with_heart_rate) {
+            $restingHeartRate = (array) $this->GetArrayElem($jdata, 'restingHeartRate', [], $fnd);
+            if ($fnd) {
+                $this->SendDebug(__FUNCTION__, 'restingHeartRate=' . print_r($restingHeartRate, true), 0);
+                // restingHeartRate.status
+            }
+        }
+        if ($with_respiratory_rate) {
+            $restingRespiratoryRate = (array) $this->GetArrayElem($jdata, 'restingRespiratoryRate', [], $fnd);
+            if ($fnd) {
+                $this->SendDebug(__FUNCTION__, 'restingRespiratoryRate=' . print_r($restingRespiratoryRate, true), 0);
+
+                // restingRespiratoryRate.status
+            }
+        }
+        if ($with_bark) {
+            $bark = (array) $this->GetArrayElem($jdata, 'bark', [], $fnd);
+            if ($fnd) {
+                $this->SendDebug(__FUNCTION__, 'bark=' . print_r($bark, true), 0);
+            }
+        }
+        if ($with_scratch) {
+            $scratch = (array) $this->GetArrayElem($jdata, 'scratch', [], $fnd);
+            if ($fnd) {
+                $this->SendDebug(__FUNCTION__, 'scratch=' . print_r($scratch, true), 0);
+            }
+        }
     }
 
     private function AdjustActions($mode)

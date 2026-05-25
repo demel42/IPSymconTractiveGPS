@@ -171,6 +171,9 @@ GUIDs
 
 ## 7. Versions-Historie
 
+- 1.19 @ 24.05.2026 14:57
+  - Erweiterung: optionale Übernahme von Gesundheitsdaten
+
 - 1.18 @ 12.05.2026 14:15
   - Fix: Änderung von deprecated php code
   - update submodule CommonStubs

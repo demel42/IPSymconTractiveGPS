@@ -11,6 +11,10 @@ class TractiveGpsIO extends IPSModule
     use TractiveGpsLocalLib;
 
     private static $x_tractive_client = '6671ac0e3c527688feb5fe80';
+    // private static $x_tractive_client = '625e533dc3c3b41c28a669f0';
+
+    private static $api_base_url = 'https://graph.tractive.com/4';
+    private static $aps_api_base_url = 'https://aps-api.tractive.com/api/1';
 
     private $SemaphoreID;
 
@@ -252,11 +256,16 @@ class TractiveGpsIO extends IPSModule
                 case 'GetIndex':
                     $r = $this->GetIndex($ret);
                     break;
-                case 'GetUpdateData':
+                case 'GetDeviceData':
                     $tracker_id = $jdata['tracker_id'];
                     $pet_id = $jdata['pet_id'];
                     $this->SendDebug(__FUNCTION__, 'function=' . $jdata['Function'] . ', tracker_id=' . $tracker_id . ', pet_id=' . $pet_id, 0);
-                    $r = $this->GetUpdateData($tracker_id, $pet_id, $ret);
+                    $r = $this->GetDeviceData($tracker_id, $pet_id, $ret);
+                    break;
+                case 'GetPetHealth':
+                    $pet_id = $jdata['pet_id'];
+                    $this->SendDebug(__FUNCTION__, 'function=' . $jdata['Function'] . ', pet_id=' . $pet_id, 0);
+                    $r = $this->GetPetHealth($pet_id, $ret);
                     break;
                 case 'SwitchBuzzer':
                     $tracker_id = $jdata['tracker_id'];
@@ -321,9 +330,10 @@ class TractiveGpsIO extends IPSModule
                 'grant_type'     => 'tractive',
             ];
 
+            $url = self::$api_base_url . '/auth/token';
             $data = '';
             $err = '';
-            $statuscode = $this->do_HttpRequest('/auth/token', $header, $postdata, 'POST', $data);
+            $statuscode = $this->do_HttpRequest($url, $header, $postdata, 'POST', $data);
             if ($statuscode == 0) {
                 $params = json_decode($data, true);
                 $this->SendDebug(__FUNCTION__, 'params=' . print_r($params, true), 0);
@@ -362,13 +372,11 @@ class TractiveGpsIO extends IPSModule
         return $token;
     }
 
-    private function do_HttpRequest($func, $header, $postdata, $mode, &$data)
+    private function do_HttpRequest($url, $header, $postdata, $mode, &$data)
     {
         $curl_exec_timeout = $this->ReadPropertyInteger('curl_exec_timeout');
         $curl_exec_attempts = $this->ReadPropertyInteger('curl_exec_attempts');
         $curl_exec_delay = $this->ReadPropertyFloat('curl_exec_delay');
-
-        $url = 'https://graph.tractive.com/3' . $func;
 
         $this->SendDebug(__FUNCTION__, 'http-' . $mode . ': url=' . $url, 0);
         $this->SendDebug(__FUNCTION__, '    header=' . print_r($header, true), 0);
@@ -468,8 +476,8 @@ class TractiveGpsIO extends IPSModule
         $jtoken = json_decode($token, true);
         $user_id = $jtoken['user_id'];
 
-        $func = '/user/' . $user_id . '/trackers';
-        return $this->do_ApiCall($func, false, $data);
+        $url = self::$api_base_url . '/user/' . $user_id . '/trackers';
+        return $this->do_ApiCall($url, false, $data);
     }
 
     private function GetData4User($func, &$data)
@@ -482,8 +490,8 @@ class TractiveGpsIO extends IPSModule
         $jtoken = json_decode($token, true);
         $user_id = $jtoken['user_id'];
 
-        $func = '/user/' . $user_id . $func;
-        return $this->do_ApiCall($func, false, $data);
+        $url = self::$api_base_url . '/user/' . $user_id . $func;
+        return $this->do_ApiCall($url, false, $data);
     }
 
     private function GetUserData()
@@ -493,8 +501,8 @@ class TractiveGpsIO extends IPSModule
 
     private function GetData4Pet($func, $pet_id, &$data)
     {
-        $func = '/pet/' . $pet_id . $func;
-        return $this->do_ApiCall($func, false, $data);
+        $url = self::$api_base_url . '/pet/' . $pet_id . $func;
+        return $this->do_ApiCall($url, false, $data);
     }
 
     private function GetPetData($pet_id, &$data)
@@ -502,10 +510,16 @@ class TractiveGpsIO extends IPSModule
         return $this->GetData4Pet('/', $pet_id, $data);
     }
 
+    private function GetPetHealth($pet_id, &$data)
+    {
+        $url = self::$aps_api_base_url . '/pet/' . $pet_id . '/health/overview';
+        return $this->do_ApiCall($url, false, $data);
+    }
+
     private function GetData4Tracker($func, $tracker_id, &$data)
     {
-        $func = '/tracker/' . $tracker_id . $func;
-        return $this->do_ApiCall($func, false, $data);
+        $url = self::$api_base_url . '/tracker/' . $tracker_id . $func;
+        return $this->do_ApiCall($url, false, $data);
     }
 
     private function GetTrackerData($tracker_id, &$data)
@@ -515,17 +529,17 @@ class TractiveGpsIO extends IPSModule
 
     private function GetDataBulk($postdata, &$data)
     {
-        $func = '/bulk?schema=flat';
-        return $this->do_ApiCall($func, $postdata, $data);
+        $url = self::$api_base_url . '/bulk?schema=flat';
+        return $this->do_ApiCall($url, $postdata, $data);
     }
 
     private function ExecuteTrackerCommand($tracker_id, $cmd, &$data)
     {
-        $func = '/tracker/' . $tracker_id . '/command/' . $cmd;
-        return $this->do_ApiCall($func, false, $data);
+        $url = self::$api_base_url . '/tracker/' . $tracker_id . '/command/' . $cmd;
+        return $this->do_ApiCall($url, false, $data);
     }
 
-    private function GetUpdateData($tracker_id, $pet_id, &$data)
+    private function GetDeviceData($tracker_id, $pet_id, &$data)
     {
         $postdata = [
             [
@@ -625,7 +639,7 @@ class TractiveGpsIO extends IPSModule
         return true;
     }
 
-    private function do_ApiCall($func, $postdata, &$data)
+    private function do_ApiCall($url, $postdata, &$data)
     {
         $token = $this->GetAccessToken();
         if ($token == false) {
@@ -651,7 +665,7 @@ class TractiveGpsIO extends IPSModule
             return false;
         }
 
-        $statuscode = $this->do_HttpRequest($func, $header, $postdata, $mode, $data);
+        $statuscode = $this->do_HttpRequest($url, $header, $postdata, $mode, $data);
 
         IPS_SemaphoreLeave($this->SemaphoreID);
 

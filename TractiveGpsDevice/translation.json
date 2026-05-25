@@ -10,15 +10,24 @@
 			"__elements__": "",
 			"Disable instance": "Instanz deaktivieren",
 
+			"Basic configuration (don't change)": "Basis-Konfiguration (nicht ändern)",
 			"Tracker-ID": "Tracker-ID",
 			"Pet-ID": "Haustier-ID",
 			"Model": "Modell",
-			"Basic configuration (don't change)": "Basis-Konfiguration (nicht ändern)",
-			"Update interval": "Aktualisierungsintervall",
-			"Minutes": "Minuten",
 
+			"Data import settings": "Einstellung der Datenübernahme",
 			"save position to (logged) variable 'Position'": "Position in der (protokollierten) Variablen 'Position' speichern",
 			"save position": "Position speichern",
+			"Health overview": "Gesundheits-Übersicht",
+			"... activity monitoring": "... Aktivitätsüberwachung",
+			"... sleep monitoring": "... Schlafüberwachung",
+			"... heart rate": "... Herzfrequenz",
+			"... respiratory rate": "... Atemfrequenz",
+			"... bark behaviour": "... Bellverhalten",
+			"... scratch behaviour": "... Kratzverhalten",
+
+			"Update interval": "Aktualisierungsintervall",
+			"Minutes": "Minuten",
 
 			"Generate message when the gateway is inactive": "Meldung erzeugen wenn der Gateway inaktiv ist",
 
@@ -40,6 +49,13 @@
 			"Position uncerntainty": "Positions-Ungenauigkeit",
 			"Last update": "Letzte Aktualisierung",
 			"Last change": "Letzte Änderung",
+
+			"Activity": "Aktivität",
+			"Daytime sleep": "Tagschlaf",
+			"Nighttime sleep": "Nachtschlaf",
+			"Calm phase": "Ruhephase",
+			"Rest heart rate": "Ruhe-Herzfrequenz",
+			"Rest respiratory rate": "Ruhe-Atemfrequenz",
 
 			"Buzzer": "Signalton",
 			"Light": "Signallicht",
