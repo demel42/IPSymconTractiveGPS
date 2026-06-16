@@ -267,6 +267,13 @@ class TractiveGpsIO extends IPSModule
                     $this->SendDebug(__FUNCTION__, 'function=' . $jdata['Function'] . ', pet_id=' . $pet_id, 0);
                     $r = $this->GetPetHealth($pet_id, $ret);
                     break;
+                case 'GetTrackerHistory':
+                    $tracker_id = $jdata['tracker_id'];
+                    $time_from = $jdata['time_from'];
+                    $time_to = $jdata['time_to'];
+                    $this->SendDebug(__FUNCTION__, 'function=' . $jdata['Function'] . ', tracker_id=' . $tracker_id . ', time_from=' . $time_from . ', time_to=' . $time_to, 0);
+                    $r = $this->GetTrackerHistory($tracker_id, $time_from, $time_to, $ret);
+                    break;
                 case 'SwitchBuzzer':
                     $tracker_id = $jdata['tracker_id'];
                     $mode = (bool) $jdata['payload']['mode'] ? 'on' : 'off';
@@ -519,6 +526,15 @@ class TractiveGpsIO extends IPSModule
     private function GetData4Tracker($func, $tracker_id, &$data)
     {
         $url = self::$api_base_url . '/tracker/' . $tracker_id . $func;
+        return $this->do_ApiCall($url, false, $data);
+    }
+
+    private function GetTrackerHistory($tracker_id, $time_from, $time_to, &$data)
+    {
+        $url = self::$api_base_url . '/tracker/' . $tracker_id . '/positions'
+            . '?time_from=' . $time_from
+            . '&time_to=' . $time_to
+            . '&format=json_segments';
         return $this->do_ApiCall($url, false, $data);
     }
 
