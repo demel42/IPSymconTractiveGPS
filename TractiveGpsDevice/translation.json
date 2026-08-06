@@ -18,6 +18,8 @@
 			"Data import settings": "Einstellung der Datenübernahme",
 			"save position to (logged) variable 'Position'": "Position in der (protokollierten) Variablen 'Position' speichern",
 			"save position": "Position speichern",
+			"add track history to the archive of 'Position'": "Track-Historie zum Archiv von 'Position' hinzufügen",
+			"... period of the track history": "... Zeitraum der Track-Historie",
 			"Health overview": "Gesundheits-Übersicht",
 			"... activity monitoring": "... Aktivitätsüberwachung",
 			"... sleep monitoring": "... Schlafüberwachung",

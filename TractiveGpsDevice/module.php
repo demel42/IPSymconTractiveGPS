@@ -35,6 +35,8 @@ class TractiveGpsDevice extends IPSModule
         $this->RegisterPropertyString('model_number', '');
 
         $this->RegisterPropertyBoolean('save_position', false);
+        $this->RegisterPropertyBoolean('save_track_history', false);
+        $this->RegisterPropertyInteger('track_history_minutes', 60);
 
         $this->RegisterPropertyBoolean('with_activity', false);
         $this->RegisterPropertyBoolean('with_sleep', false);
@@ -47,6 +49,7 @@ class TractiveGpsDevice extends IPSModule
 
         $this->RegisterAttributeString('UpdateInfo', json_encode([]));
         $this->RegisterAttributeString('ModuleStats', json_encode([]));
+        $this->RegisterAttributeInteger('TrackHistoryLast', 0);
 
         $this->InstallVarProfiles(false);
 
@@ -233,6 +236,18 @@ class TractiveGpsDevice extends IPSModule
                     'name'    => 'save_position',
                     'caption' => 'save position'
                 ],
+                [
+                    'type'    => 'CheckBox',
+                    'name'    => 'save_track_history',
+                    'caption' => 'add track history to the archive of \'Position\''
+                ],
+                [
+                    'type'    => 'NumberSpinner',
+                    'name'    => 'track_history_minutes',
+                    'minimum' => 1,
+                    'suffix'  => 'Minutes',
+                    'caption' => '... period of the track history'
+                ],
 
                 [
                     'type'    => 'Label',
@@ -374,6 +389,10 @@ class TractiveGpsDevice extends IPSModule
         $receiveData = $this->SendDataToParent(json_encode($sendData));
         $this->SendDebug(__FUNCTION__, 'receiveData=' . print_r($receiveData, true), 0);
         $this->decodeDeviceData($receiveData);
+
+        if ($this->ReadPropertyBoolean('save_position') && $this->ReadPropertyBoolean('save_track_history')) {
+            $this->UpdateTrackHistory();
+        }
 
         $with_pet_health = false;
         $with_pet_health |= $this->ReadPropertyBoolean('with_activity');
@@ -595,6 +614,138 @@ class TractiveGpsDevice extends IPSModule
                 $this->SendDebug(__FUNCTION__, 'scratch=' . print_r($scratch, true), 0);
             }
         }
+    }
+
+    private function UpdateTrackHistory()
+    {
+        $varID = @$this->GetIDForIdent('Position');
+        if ($varID == false) {
+            $this->SendDebug(__FUNCTION__, 'missing variable Position', 0);
+            return;
+        }
+
+        $archivIDs = (array) IPS_GetInstanceListByModuleID('{43192F0B-135B-4CE7-A0A7-1475603F3060}'); // Archive Control
+        if (count($archivIDs) == 0) {
+            $this->SendDebug(__FUNCTION__, 'no archive control instance found', 0);
+            return;
+        }
+        $archiveID = $archivIDs[0];
+
+        if (AC_GetLoggingStatus($archiveID, $varID) == false) {
+            $this->SendDebug(__FUNCTION__, 'logging for variable Position is not enabled => skip track history', 0);
+            return;
+        }
+
+        $now = time();
+        $minutes = $this->ReadPropertyInteger('track_history_minutes');
+        if ($minutes < 1) {
+            $minutes = 1;
+        }
+        $time_from = $now - ($minutes * 60);
+        $lastTs = $this->ReadAttributeInteger('TrackHistoryLast');
+        if ($lastTs > $time_from) {
+            $time_from = $lastTs;
+        }
+
+        $tracker_id = $this->ReadPropertyString('tracker_id');
+        $sendData = [
+            'DataID'     => '{94B20D14-415B-1E19-8EA4-839F948B6CBE}', // an TractiveGpsIO
+            'CallerID'   => $this->InstanceID,
+            'Function'   => 'GetTrackerHistory',
+            'tracker_id' => $tracker_id,
+            'time_from'  => $time_from,
+            'time_to'    => $now,
+        ];
+        $this->SendDebug(__FUNCTION__, 'sendData=' . print_r($sendData, true), 0);
+        $receiveData = $this->SendDataToParent(json_encode($sendData));
+        $this->SendDebug(__FUNCTION__, 'receiveData=' . print_r($receiveData, true), 0);
+        if ($receiveData == false) {
+            return;
+        }
+
+        $jdata = json_decode($receiveData, true);
+        if (!is_array($jdata)) {
+            $this->SendDebug(__FUNCTION__, 'malformed data', 0);
+            return;
+        }
+
+        $values = [];
+        $maxTs = $lastTs;
+        foreach ($jdata as $segment) {
+            if (!is_array($segment)) {
+                continue;
+            }
+            foreach ($segment as $point) {
+                if (!is_array($point)) {
+                    continue;
+                }
+                $time = (int) $this->GetArrayElem($point, 'time', 0);
+                if ($time <= 0 || $time <= $lastTs) {
+                    continue;
+                }
+
+                $lat = $this->GetArrayElem($point, 'latlong.0', '');
+                $lng = $this->GetArrayElem($point, 'latlong.1', '');
+                if ($lat === '' || $lng === '') {
+                    continue;
+                }
+
+                $altitude = $this->GetArrayElem($point, 'altitude', '');
+                if ($altitude === '') {
+                    $altitude = $this->GetArrayElem($point, 'alt', 0);
+                }
+
+                $pos = json_encode([
+                    'latitude'  => (float) $this->format_float($lat, 6),
+                    'longitude' => (float) $this->format_float($lng, 6),
+                    'altitude'  => (float) $altitude,
+                ]);
+                $values[] = [
+                    'TimeStamp' => $time,
+                    'Value'     => $pos,
+                ];
+                if ($time > $maxTs) {
+                    $maxTs = $time;
+                }
+            }
+        }
+
+        if (count($values) == 0) {
+            $this->SendDebug(__FUNCTION__, 'no new track positions to add', 0);
+            return;
+        }
+
+        usort($values, function ($a, $b) {
+            return $a['TimeStamp'] <=> $b['TimeStamp'];
+        });
+
+        // adding a value with an already logged timestamp causes an error
+        $existingTs = [];
+        $loggedValues = @AC_GetLoggedValues($archiveID, $varID, $values[0]['TimeStamp'], $maxTs, 0);
+        if (is_array($loggedValues)) {
+            foreach ($loggedValues as $loggedValue) {
+                $existingTs[$loggedValue['TimeStamp']] = true;
+            }
+        }
+        $n = count($values);
+        $values = array_values(array_filter($values, function ($value) use (&$existingTs) {
+            if (isset($existingTs[$value['TimeStamp']])) {
+                return false;
+            }
+            $existingTs[$value['TimeStamp']] = true;
+            return true;
+        }));
+        if ($n != count($values)) {
+            $this->SendDebug(__FUNCTION__, 'skipped ' . ($n - count($values)) . ' position(s) with duplicate timestamp', 0);
+        }
+
+        if (count($values) > 0) {
+            $this->SendDebug(__FUNCTION__, 'add ' . count($values) . ' position(s) to archive of variable Position', 0);
+            AC_AddLoggedValues($archiveID, $varID, $values);
+            AC_ReAggregateVariable($archiveID, $varID);
+        }
+
+        $this->WriteAttributeInteger('TrackHistoryLast', $maxTs);
     }
 
     private function AdjustActions($mode)
