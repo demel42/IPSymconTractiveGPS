@@ -719,9 +719,31 @@ class TractiveGpsDevice extends IPSModule
             return $a['TimeStamp'] <=> $b['TimeStamp'];
         });
 
-        $this->SendDebug(__FUNCTION__, 'add ' . count($values) . ' position(s) to archive of variable Position', 0);
-        AC_AddLoggedValues($archiveID, $varID, $values);
-        AC_ReAggregateVariable($archiveID, $varID);
+        // adding a value with an already logged timestamp causes an error
+        $existingTs = [];
+        $loggedValues = @AC_GetLoggedValues($archiveID, $varID, $values[0]['TimeStamp'], $maxTs, 0);
+        if (is_array($loggedValues)) {
+            foreach ($loggedValues as $loggedValue) {
+                $existingTs[$loggedValue['TimeStamp']] = true;
+            }
+        }
+        $n = count($values);
+        $values = array_values(array_filter($values, function ($value) use (&$existingTs) {
+            if (isset($existingTs[$value['TimeStamp']])) {
+                return false;
+            }
+            $existingTs[$value['TimeStamp']] = true;
+            return true;
+        }));
+        if ($n != count($values)) {
+            $this->SendDebug(__FUNCTION__, 'skipped ' . ($n - count($values)) . ' position(s) with duplicate timestamp', 0);
+        }
+
+        if (count($values) > 0) {
+            $this->SendDebug(__FUNCTION__, 'add ' . count($values) . ' position(s) to archive of variable Position', 0);
+            AC_AddLoggedValues($archiveID, $varID, $values);
+            AC_ReAggregateVariable($archiveID, $varID);
+        }
 
         $this->WriteAttributeInteger('TrackHistoryLast', $maxTs);
     }
